@@ -19,6 +19,8 @@ def hselect( filename_list, keyword_list, extension='all', verbose=1 ):
     
     if ',' in filename_list:
         filename_list = filename_list.split( ',' )
+    elif isinstance( filename_list, list ):
+        pass
     else:
         filename_list = glob.glob( filename_list ) 
 
@@ -36,7 +38,7 @@ def hselect( filename_list, keyword_list, extension='all', verbose=1 ):
         elif isinstance( extension, int ):
             extension_list = [ extension ]
         elif isinstance( extension, str ):
-            extension_list = map( int, extension_list.split(',') )
+            extension_list = map( int, extension.split(',') )
         else:
             raise Exception( "extension not understood" )
 

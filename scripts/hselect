@@ -1,0 +1,48 @@
+#!/usr/bin/env/python
+import argparse
+from astroraf.headers.tools import hselect
+
+def parse_args():
+    parser = argparse.ArgumentParser(description=
+                                     'Add or modify a header value.')
+
+    parser.add_argument('fits_files', nargs='+', type=str,
+                        help='Name of fits files.')
+
+    parser.add_argument('keyword', help='Keyword to find.')
+
+
+    parser.add_argument('-e', '--ext', type=str, default='all',
+                        help='Extension number. Defaults to all.')
+    
+    parser.add_argument('-s', '--str', action='store_const', const=str,
+                        dest='type', 
+                        help='Value will be stored as string (default).')
+    
+    parser.add_argument('-f', '--float', action='store_const', const=float,
+                        dest='type', help='Value will be stored as float.')
+    
+    parser.add_argument('-i', '--int', action='store_const', const=int,
+                        dest='type', help='Value will be stored as integer.')
+
+    parser.add_argument('-b', '--bool', action='store_const', const=True,
+                        dest='type', help='Value will be stored as boolean.')
+
+    return parser.parse_args()
+
+def main():
+  args = parse_args()
+  
+  if args.type is not None:
+    value_type = args.type
+  else:
+    # if nothing specified, default to string
+    value_type = str
+  
+  hselect( args.fits_files, args.keyword, args.ext )
+  
+
+if __name__ == '__main__':
+  main()
+    
+  
