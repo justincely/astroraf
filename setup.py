@@ -10,6 +10,6 @@ setup(
     description = 'Package of Pyraf/IRAF replacement tasks',
     author = 'Justin Ely',
     author_email = 'ely@stsci.edu',
-    scripts =  ['scripts/hselect']
+    scripts =  ['scripts/hselect','scripts/hedit']
     )
 
