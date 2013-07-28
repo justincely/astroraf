@@ -1,12 +1,34 @@
+"""
+Collection of functions for dealing with spectra
+
+"""
 
 LIGHTSPEED = 2.9979E5
 
+def generate_lyman(n,z=0):
+    """ 
+    Generate a list of Lyman line locations in wavelength.
+    
+    Line locations are given in Angstroms.
+    """
+    
+    R = 1.0968E7 * 1E-10 # Rydberg constant in A
+    line_list = [ 1. / (R * (1. - ( 1. / (i*i) ) ) ) for i in range(2,n+2)  ]
+
+    return line_list
+
+
 def wavelength_to_velocity(wavelength, zeropoint):
-    zeropoint = float(zeropoint)
+    """
+    Convert a wavelength array into velocity around a specific zeropoint.
+
+    Returns velocity in km/s
+
+    """
+
+    zeropoint = float( zeropoint )
 
     z = (wavelength - float(zeropoint) ) / (zeropoint)
-    #z2 = (1 + z) ** 2
-    #velocity = ((z2 - 1 ) / (z + 1)) * LIGHTSPEED
     velocity = z * LIGHTSPEED
 
     return velocity
@@ -17,9 +39,10 @@ def velocity_to_wavelength(velocity, zeropoint):
 
 
 def luminosity_distance(redshift,flux):
-    PI = 3.14159
+    from numpy import pi
+   
     distance = LIGHTSPEED * redshift
-    luminosity = flux * PI * distance**2
+    luminosity = flux * pi * distance**2
   
     return luminosity
 
@@ -46,8 +69,18 @@ def z_to_vel(redshift):
 
 
 def rest_wavelength(obs_wave,redshift):
+    """
+    Calculate the rest wavelength from observed wavelength and redshift.
+
+    """
+
     return float(obs_wave) / (redshift + 1)
 
 
 def obs_wavelength(rest_wave,redshift):
+    """
+    Calculate the observed wavelength from rest wavelengh and redshift.
+
+    """
+
     return float(rest_wave) * (redshift + 1)

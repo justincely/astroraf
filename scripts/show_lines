@@ -7,15 +7,9 @@ import sys
 import numpy as np
 import scipy
 import glob
-import functions
 import random
-
-#---------------------------------------------------------------------------
-
-def generate_lyman( n,z=0 ):
-    R = 1.0968E7 * 1E-10 # Rydberg constant in A
-    locations = [ 1. / (R * (1. - ( 1. / (i*i) ) ) ) for i in range(2,n+2)  ]
-    return locations
+from astroraf.spectra.spectools import generate_lyman, obs_wavelength, vel_to_z, vel_to_z_actually
+from astroraf.misc import unpickle
 
 #---------------------------------------------------------------------------
 
@@ -35,9 +29,12 @@ def plot_lines( file_name, redshift=None,intrinsic_lines=None ):
                            770.4089:'NeVIII', 780.3240:'NeVIII', 788:'OIV*', 790:'OIV'}
 
     if not redshift:
-        info = functions.unpickle('redshifts.pkl')
-        redshift = info[TARGNAME]
-
+        try:
+            info = unpickle('redshifts.pkl')
+            redshift = info[TARGNAME]
+        except:
+            print 'No redshift given nor found, assuming z = 0'
+            redshift = 0
 
     wavelength = fits[1].data['wavelength'].flatten()
     wave_min = wavelength.min()
@@ -97,7 +94,7 @@ def plot_lines( file_name, redshift=None,intrinsic_lines=None ):
                 if not len(line) > 1: continue
                 center = float(line[0])
                 name = ''.join(line[1:])
-                #shifted_center = functions.obs_wavelength(center,redshift)
+                #shifted_center = obs_wavelength(center,redshift)
                 if center < wave_min or center > wave_max: continue
                 bottom_line = ax.axvline(x=center,ymin=.05, ymax = .15,color='b',linestyle='--',lw=3)
                 ax.annotate(name+' \n'+str(center),(-.1,1),xycoords = bottom_line.get_window_extent,rotation = 90)
@@ -120,10 +117,10 @@ def plot_lines( file_name, redshift=None,intrinsic_lines=None ):
 
 
         velocity_offset = OFFSET
-        added_redshift = functions.vel_to_z_actually(velocity_offset)
+        added_redshift = vel_to_z_actually(velocity_offset)
 
         ### --- this is the right one --- #
-        shifted_locations = [ functions.vel_to_z(velocity_offset, functions.obs_wavelength(location,redshift) )
+        shifted_locations = [ vel_to_z(velocity_offset, obs_wavelength(location,redshift) )
                               for location in line_locations ]
 
         for center,name,nominal in zip(shifted_locations, names, line_locations):
@@ -137,7 +134,7 @@ def plot_lines( file_name, redshift=None,intrinsic_lines=None ):
         lyman_locations = generate_lyman( n_lyman )
         lyman_names = map( str,range( n_lyman ) )
         lyman_z = .6602
-        shifted_locations = [ functions.obs_wavelength(location,lyman_z )
+        shifted_locations = [ obs_wavelength(location,lyman_z )
                             for location in lyman_locations ]
 
         for center,name,nominal in zip(shifted_locations,lyman_names, lyman_locations):
@@ -162,9 +159,6 @@ def plot_lines( file_name, redshift=None,intrinsic_lines=None ):
 #---------------------------------------------------------------------------
 
 if __name__ == "__main__":
-
-    possible_filenames = [ line.strip() for line in open('possible_obs.txt','r') ]
     plt.ion()
-    functions.init_plots()
 
     plot_lines( sys.argv[1] )

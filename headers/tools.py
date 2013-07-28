@@ -1,3 +1,6 @@
+
+__all__ = ['key_exists','hselect']
+
 import pyfits
 import glob
 
