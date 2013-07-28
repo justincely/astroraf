@@ -1,0 +1,21 @@
+#!/usr/bin/env/python
+
+import pyfits
+import numpy as np
+import sys
+
+def quick_stat( filename,ext=1 ):
+    hdu = pyfits.open( filename )
+    
+    data_mean = hdu[ ext ].data.mean()
+    data_std = hdu[ ext ].data.std()
+    data_max = hdu[ ext ].data.max()
+    data_min = hdu[ ext ].data.min()
+    shape_str = 'x'.join( map(str,hdu[ ext ].data.shape) )
+    
+    print 'filename, shape, mean, std, min, max'
+    print filename, shape_str, data_mean, data_std, data_min, data_max
+
+
+if __name__ == "__main__":
+    quick_stat( sys.argv[1] )
