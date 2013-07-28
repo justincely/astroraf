@@ -1,0 +1,170 @@
+#! /usr/bin/env python
+
+import matplotlib.pyplot as plt
+import pyfits
+import os
+import sys
+import numpy as np
+import scipy
+import glob
+import functions
+import random
+
+#---------------------------------------------------------------------------
+
+def generate_lyman( n,z=0 ):
+    R = 1.0968E7 * 1E-10 # Rydberg constant in A
+    locations = [ 1. / (R * (1. - ( 1. / (i*i) ) ) ) for i in range(2,n+2)  ]
+    return locations
+
+#---------------------------------------------------------------------------
+
+def plot_lines( file_name, redshift=None,intrinsic_lines=None ):
+
+    fig = 0
+    xlims = None
+    ylims = None
+
+    fits = pyfits.open( file_name )
+    TARGNAME = fits[0].header['TARGNAME']
+    
+
+    if not intrinsic_lines:
+        intrinsic_lines = {499.406:'SIXII', 520.665:'SIXII', 608:'OIV', 610:'OIV',
+                           609.793:'MgX', 624.941:'MgX', 681.719:'NaIX', 694.146:'NaIX',
+                           770.4089:'NeVIII', 780.3240:'NeVIII', 788:'OIV*', 790:'OIV'}
+
+    if not redshift:
+        info = functions.unpickle('redshifts.pkl')
+        redshift = info[TARGNAME]
+
+
+    wavelength = fits[1].data['wavelength'].flatten()
+    wave_min = wavelength.min()
+    wave_max = wavelength.max()
+    flux = fits[1].data['flux'].flatten()
+    not_airglow = np.where( ( (wavelength < 1210) | (wavelength > 1220) ) &
+                            ( (wavelength < 1300) | (wavelength > 1310) ) )[0]
+    flux_max = flux[not_airglow].max()
+    dq_array = fits[1].data['dq'].flatten()
+    SDQFLAGS = fits[1].header['sdqflags']
+    bad_index = np.where( dq_array & SDQFLAGS )
+
+    smooth_7 = scipy.convolve(flux,np.ones(7)/7,mode='same')
+    smooth_21 = scipy.convolve(flux,np.ones(21)/21,mode='same')
+    smooth_51 = scipy.convolve(flux,np.ones(51)/51,mode='same')
+    #smooth_125 = scipy.convolve(flux,np.ones(125)/125,mode='same')
+    '''
+    flux[bad_index] = 0
+    smooth_7[bad_index] = 0 
+    smooth_21[bad_index] = 0
+    smooth_51[bad_index] = 0
+    smooth_125[bad_index] = 0
+    '''
+    OFFSET = 0
+    while not OFFSET in ['quit','q','next','']:
+        try:
+            OFFSET = float(OFFSET)
+        except:
+            OFFSET = raw_input('Try a number please\n V=?')   
+            continue
+
+        if fig == 0:
+            fig = plt.figure()
+        ax = fig.add_subplot('111')
+        ax.plot(wavelength,flux,color='k',lw=1,alpha=.5,label='Raw')
+        ax.plot(wavelength,smooth_7,color='b',lw=2,label='BOX: 7')
+        #ax.plot(wavelength,smooth_21,color='m',lw=1,label='BOX: 21')   
+        ax.plot(wavelength,smooth_51,color='g',lw=3,label='BOX: 51')
+        #ax.plot(wavelength,smooth_125,color='g',lw=1,label='BOX: 125')
+
+        #plt.plot(wavelength[bad_index],flux[bad_index],'ro',lw=2)
+        #plt.plot(wavelength[bad_index],smooth_7[bad_index],'ro',lw=2)
+        #plt.plot(wavelength[bad_index],smooth_21[bad_index],'ro',lw=2)
+        #plt.plot(wavelength[bad_index],smooth_51[bad_index],'ro',lw=2)
+        #plt.plot(wavelength[bad_index],smooth_125[bad_index],'ro',lw=2)
+        #blank_flux = flux-flux
+        #plt.plot(wavelength[bad_index],blank_flux[bad_index],'r',lw=2)
+
+
+        line_files = ['ism.txt']
+
+        ###not redshifted
+        for ifile in line_files:
+            for line in open(ifile):
+                line = line.strip()
+                line = line.split()
+                if not len(line) > 1: continue
+                center = float(line[0])
+                name = ''.join(line[1:])
+                #shifted_center = functions.obs_wavelength(center,redshift)
+                if center < wave_min or center > wave_max: continue
+                bottom_line = ax.axvline(x=center,ymin=.05, ymax = .15,color='b',linestyle='--',lw=3)
+                ax.annotate(name+' \n'+str(center),(-.1,1),xycoords = bottom_line.get_window_extent,rotation = 90)
+
+        ###These get redshift
+        line_files = ['agn_lines.txt']
+        line_locations = []
+        names = []
+        names.append('OV')
+        line_locations.append(605.474)
+        for ifile in line_files:
+            for line in open(ifile):
+                line = line.strip()
+                line = line.split()
+                if not len(line) > 1: continue
+                center = float(line[0])
+                name = ' '.join(line[1:])
+                line_locations.append( center )
+                names.append( name )
+
+
+        velocity_offset = OFFSET
+        added_redshift = functions.vel_to_z_actually(velocity_offset)
+
+        ### --- this is the right one --- #
+        shifted_locations = [ functions.vel_to_z(velocity_offset, functions.obs_wavelength(location,redshift) )
+                              for location in line_locations ]
+
+        for center,name,nominal in zip(shifted_locations, names, line_locations):
+            if center < wave_min or center > wave_max: continue
+            top_line = ax.axvline(x=center,ymin=.85, ymax = .95, color='g',linestyle='--',lw=3)
+            ax.annotate(name+' \n'+str(nominal),(-.1,1),xycoords = top_line.get_window_extent, rotation = 90)
+        
+
+        ### Lyman lines
+        n_lyman = 0
+        lyman_locations = generate_lyman( n_lyman )
+        lyman_names = map( str,range( n_lyman ) )
+        lyman_z = .6602
+        shifted_locations = [ functions.obs_wavelength(location,lyman_z )
+                            for location in lyman_locations ]
+
+        for center,name,nominal in zip(shifted_locations,lyman_names, lyman_locations):
+                top_line = ax.axvline(x=center,ymin=.85, ymax = .95, color='k',linestyle='-',lw=3)
+                ax.annotate(name+' \n'+str(nominal),(-.1,1),xycoords = top_line.get_window_extent, rotation = 90)
+
+
+        ax.set_title( TARGNAME +'  '+str(redshift) )
+        ax.legend( shadow=True,numpoints=1 )
+        if not xlims:  ax.set_xlim(wavelength.min(),wavelength.max())
+        else: ax.set_xlim( xlims[0],xlims[1] )
+        
+        if not ylims: ax.set_ylim(0,flux_max*1.1)
+        else: ax.set_ylim( ylims[0],ylims[1] )
+
+
+        OFFSET = raw_input('V=?')
+        xlims = ax.get_xlim()
+        ylims = ax.get_ylim()
+        plt.clf()
+
+#---------------------------------------------------------------------------
+
+if __name__ == "__main__":
+
+    possible_filenames = [ line.strip() for line in open('possible_obs.txt','r') ]
+    plt.ion()
+    functions.init_plots()
+
+    plot_lines( sys.argv[1] )
