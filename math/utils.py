@@ -1,34 +1,48 @@
-__all__ = [rebin,expand_direct,enlarge,blur_image,gauss_kern]
+__all__ = ['rebin','expand_direct','enlarge','blur_image','gauss_kern']
 
 
 def gauss_kern(size, sizey=None):
     """ Returns a normalized 2D gauss kernel array for convolutions """
+
     import scipy
+
     size = int(size)
+
     if not sizey:
         sizey = size
     else:
         sizey = int(sizey)
+
     x, y = scipy.mgrid[-size:size+1, -sizey:sizey+1]
     g = scipy.exp(-(x**2/float(size)+y**2/float(sizey)))
+
     return g / g.sum()
 
 
 def blur_image(im, n, ny=None):
-    """ blurs the image by convolving with a gaussian kernel of typical
+    """
+    blurs the image by convolving with a gaussian kernel of typical
     size n. The optional keyword argument ny allows for a different
     size in the y direction.
+    
     """
+
     import scipy.signal
     from scipy.signal import convolve
+    from . import gauss_kern
+
     g = gauss_kern(n, sizey=ny)
     improc = scipy.signal.convolve(im,g, mode='same')
+
     return improc
 
+
 def rebin(a, bins=(2,2), mode='slice'):
-    '''
+    """
     Rebins input array using array slices
-    '''
+    
+    """
+
     assert mode in ('slice','direct','weird','avg')
     y,x=a.shape
     ybin=bins[0]
@@ -70,9 +84,11 @@ def rebin(a, bins=(2,2), mode='slice'):
     
 
 def expand_direct(a,bins=(2,2)):
-    '''
+    """
     Block expand input array
-    '''
+    
+    """
+    
     import numpy
     import os
     y,x=a.shape
@@ -94,9 +110,13 @@ def expand_direct(a,bins=(2,2)):
 
 
 def enlarge(a, x=2, y=None):
-    """Enlarges 2D image array a using simple pixel repetition in both dimensions.
+    """
+    Enlarges 2D image array a using simple pixel repetition in both dimensions.
     Enlarges by factor x horizontally and factor y vertically.
-    If y is left as None, uses factor x for both dimensions."""
+    If y is left as None, uses factor x for both dimensions.
+
+    """
+
     import numpy as np
     a = np.asarray(a)
     assert a.ndim == 2

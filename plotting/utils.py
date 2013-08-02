@@ -46,7 +46,7 @@ def format_axis(precision='%.1f',ticksize=1,axis=None,which='both'):
         axis = plt.gca()
 
     if which in ('x','X','both'): axis.xaxis.set_major_formatter(FormatStrFormatter(precision))
-    elif which in ('y','Y','both'): axis.yaxis.set_major_formatter(FormatStrFormatter(precision))
+    if which in ('y','Y','both'): axis.yaxis.set_major_formatter(FormatStrFormatter(precision))
 
 
 def big_ticks(width=1,axis=None):
