@@ -1,3 +1,4 @@
+import cos
 import headers
 import math
 import misc
