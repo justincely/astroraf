@@ -5,7 +5,7 @@ Collection of functions for dealing with spectra
 
 LIGHTSPEED = 2.9979E5
 
-def generate_lyman(n,z=0):
+def generate_lyman(n, z=0):
     """ 
     Generate a list of Lyman line locations in wavelength.
     
@@ -14,6 +14,18 @@ def generate_lyman(n,z=0):
     
     R = 1.0968E7 * 1E-10 # Rydberg constant in A
     line_list = [ 1. / (R * (1. - ( 1. / (i*i) ) ) ) for i in range(2,n+2)  ]
+
+    return line_list
+
+
+def generate_balmer(n, z=0):
+    """
+    Generate a list of Hydrogen Balmer lines 
+
+    """
+
+    R = 1.0968E7 * 1E-10 # Rydberg constant in A
+    line_list = [ 1. / (R * (1./4 - ( 1. / (i*i) ) ) ) for i in range(3,n+3)  ]
 
     return line_list
 
