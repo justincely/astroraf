@@ -86,7 +86,7 @@ def rest_wavelength(obs_wave,redshift):
 
     """
 
-    return float(obs_wave) / (redshift + 1)
+    return obs_wave / (redshift + 1)
 
 
 def obs_wavelength(rest_wave,redshift):
@@ -95,4 +95,4 @@ def obs_wavelength(rest_wave,redshift):
 
     """
 
-    return float(rest_wave) * (redshift + 1)
+    return rest_wave * (redshift + 1)
