@@ -19,7 +19,28 @@ class Logger(object):
         self.terminal.flush()
 
 
-def progress_bar(iteration,total):
+def progress_bar(iteration, total):
+    """
+    Print progress bar to stdout
+
+    Call progress bar while in a loop, passing the int value
+    of the current interation and the total number of iterations.
+    A progress bar in % will be written to stdout.
+
+    Parameters
+    ----------
+    iteration : int
+        Integer value of current iteration in loop
+    total : int
+        Integer value of total # of loops
+
+    Example
+    -------
+    >>> progress_bar( i, 100 )
+    [===                 ] 17%
+
+    """
+
     import sys
     
     bar_length = 20
@@ -32,6 +53,10 @@ def progress_bar(iteration,total):
     sys.__stdout__.write('\r')
     sys.__stdout__.write("[%-20s] %d%%" % ('='* bar_done, percent_done))
     sys.__stdout__.flush()
+
+    if percent_done == 100:
+        sys.__stdout__.write('\n')
+        sys.__stdout__.flush()
 
 
 def send_email(subject=None,message=None,from_addr=None,to_addr=None):
