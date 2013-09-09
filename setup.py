@@ -18,7 +18,7 @@ setup(
                    'Topic :: Scientific/Engineering :: Physics',
                    'Topic :: Software Development :: Libraries :: Python Modules'],
     requires = ['numpy','pyfits'],
-    scripts =  ['scripts/hselect','scripts/hedit','scripts/imhead','scripts/show_lines',
-               'scripts/imstat','scripts/cosview']
+    scripts =  ['scripts/hselect', 'scripts/hedit', 'scripts/imhead', 'scripts/show_lines',
+               'scripts/imstat', 'scripts/cosview', 'scripts/lightcurve']
     )
 
