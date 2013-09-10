@@ -96,3 +96,31 @@ def obs_wavelength(rest_wave,redshift):
     """
 
     return rest_wave * (redshift + 1)
+
+
+def fft_correlate(a,b,alims=(0,-1),blims=None,wavelength=None):
+    """ Perform FFT correlation between two spectra
+    """
+
+    try: scipy
+    except: import scipy
+    try: argmax
+    except: from numpy import argmax
+
+    if blims == None: 
+        blims=alims
+
+    c = (scipy.ifft(scipy.fft(a[alims[0]:alims[1]])*scipy.conj(scipy.fft(b[blims[0]:blims[1]])))).real
+
+    shift = argmax(c)
+
+    if shift > len(a)/2.0 :
+        shift = shift - len(a)
+
+    if wavelength:
+	if len(wavelength) > 1:
+	    shift = shift * (wavelength[1] - wavelength[0])
+	else:
+	    shift = shift * wavelength
+
+    return shift
