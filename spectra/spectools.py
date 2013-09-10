@@ -123,7 +123,7 @@ def fft_correlate(a,b,alims=(0,-1),blims=None,dispersion=None):
     return shift
 
 
-def cross_correlate( flux_a, flux_b, wave_a, wave_b, window=None, subsample=2):
+def cross_correlate( flux_a, flux_b, wave_a=None, wave_b=None, window=None, subsample=2):
     """ Cross correlate two spectra in wavelength space
     """
     
