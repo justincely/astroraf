@@ -98,7 +98,7 @@ def obs_wavelength(rest_wave,redshift):
     return rest_wave * (redshift + 1)
 
 
-def fft_correlate(a,b,alims=(0,-1),blims=None,wavelength=None):
+def fft_correlate(a,b,alims=(0,-1),blims=None,dispersion=None):
     """ Perform FFT correlation between two spectra
     """
 
@@ -117,10 +117,49 @@ def fft_correlate(a,b,alims=(0,-1),blims=None,wavelength=None):
     if shift > len(a)/2.0 :
         shift = shift - len(a)
 
-    if wavelength:
-	if len(wavelength) > 1:
-	    shift = shift * (wavelength[1] - wavelength[0])
-	else:
-	    shift = shift * wavelength
+    if dispersion:
+        shift = shift * dispersion
 
     return shift
+
+
+def cross_correlate( flux_a, flux_b, wave_a, wave_b, window=None, subsample=2):
+    """ Cross correlate two spectra in wavelength space
+    """
+    
+    from scipy.interpolate import interp1d
+    import numpy as np
+
+    dispersion = np.median( (wave_a - np.roll(wave_a,1)) )
+    
+    #sub sample
+    dispersion /= subsample
+
+    flux_a, wave_a = linearize( flux_a, wave_a, dispersion )
+    flux_b, wave_b = linearize( flux_b, wave_b, dispersion )
+
+    index_a = np.where( (wave_a > window[0]) & (wave_a < window[1]) )[0]
+    index_b = np.where( (wave_b > window[0]) & (wave_b < window[1]) )[0]
+
+    shift = fft_correlate( flux_a[index_a], flux_b[index_b], dispersion=dispersion )
+
+    return shift
+
+
+def linearize( flux, wave, dispersion=None ):
+    """ Return flux and wave arrays with a linear wavelength scale
+    """
+    from scipy.interpolate import interp1d
+    import numpy as np
+
+    interp_func = interp1d( wave, flux, 1 )
+
+    if not dispersion:
+        dispersion = np.median( (wave - np.roll(wave,1)) )
+
+    out_wave = np.arange( wave.min(), wave.max(), dispersion )
+
+    out_flux = interp_func( out_wave )
+
+    return out_flux, out_wave
+
