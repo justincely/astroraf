@@ -5,6 +5,8 @@ Collection of functions for dealing with spectra
 
 LIGHTSPEED = 2.9979E5
 
+#-------------------------------------------------------------------------------
+
 def generate_lyman(n, z=0):
     """ 
     Generate a list of Lyman line locations in wavelength.
@@ -17,6 +19,7 @@ def generate_lyman(n, z=0):
 
     return line_list
 
+#-------------------------------------------------------------------------------
 
 def generate_balmer(n, z=0):
     """
@@ -29,6 +32,7 @@ def generate_balmer(n, z=0):
 
     return line_list
 
+#-------------------------------------------------------------------------------
 
 def wavelength_to_velocity(wavelength, zeropoint):
     """
@@ -45,10 +49,12 @@ def wavelength_to_velocity(wavelength, zeropoint):
 
     return velocity
 
+#-------------------------------------------------------------------------------
 
 def velocity_to_wavelength(velocity, zeropoint):
     return zeropoint * velocity/LIGHTSPEED + zeropoint
 
+#-------------------------------------------------------------------------------
 
 def luminosity_distance(redshift,flux):
     from numpy import pi
@@ -58,6 +64,7 @@ def luminosity_distance(redshift,flux):
   
     return luminosity
 
+#-------------------------------------------------------------------------------
 
 def vel_to_z(velocity, zeropt):
     import numpy as np
@@ -65,6 +72,7 @@ def vel_to_z(velocity, zeropt):
     #return zeropt + zeropt * (np.sqrt( (1+velocity/LIGHTSPEED) / (1-velocity/LIGHTSPEED) ) -1 )
     return zeropt + zeropt * (velocity / LIGHTSPEED)
 
+#-------------------------------------------------------------------------------
 
 def vel_to_z_actually(velocity):
     #approximate formula with v << C
@@ -74,11 +82,13 @@ def vel_to_z_actually(velocity):
 
     return z
 
+#-------------------------------------------------------------------------------
 
 def z_to_vel(redshift):
     ###broken
     return LIGHTSPEED * redshift
 
+#-------------------------------------------------------------------------------
 
 def rest_wavelength(obs_wave,redshift):
     """
@@ -88,6 +98,7 @@ def rest_wavelength(obs_wave,redshift):
 
     return obs_wave / (redshift + 1)
 
+#-------------------------------------------------------------------------------
 
 def obs_wavelength(rest_wave,redshift):
     """
@@ -97,6 +108,7 @@ def obs_wavelength(rest_wave,redshift):
 
     return rest_wave * (redshift + 1)
 
+#-------------------------------------------------------------------------------
 
 def fft_correlate(a,b,alims=(0,-1),blims=None,dispersion=None):
     """ Perform FFT correlation between two spectra
@@ -122,6 +134,44 @@ def fft_correlate(a,b,alims=(0,-1),blims=None,dispersion=None):
 
     return shift
 
+#-------------------------------------------------------------------------------
+
+def direct_correlate(a, b, maxdelay):
+    try: numpy
+    except: import numpy
+    import pylab
+
+    assert len(a) == len(b), 'Input arrays are not equal lengh'
+
+    n_elements = len(a)
+    mean_a = a.mean()
+    mean_b = b.mean()
+
+    denom_a = (a-mean_a) * (a-mean_a)
+    denom_b = (b-mean_b) * (b-mean_b)
+
+    denom=numpy.sqrt(denom_a.sum() * denom_b.sum())
+
+    r_values=[]
+    for delay in range(-maxdelay, maxdelay):
+        sxy=0
+
+        for i in range(n_elements):
+            j = i + delay
+            if (j < 0 | j >= n):
+                continue
+            else:
+                sxy += (a[i] - mean_a) * (b[i] - mean_b)
+
+        r = sxy / denom
+
+        print delay, sxy, denom
+        r_values.append( r )
+
+    pylab.plot( r_values )
+    raw_input()
+
+#-------------------------------------------------------------------------------
 
 def cross_correlate( flux_a, flux_b, wave_a=None, wave_b=None, window=None, subsample=2):
     """ Cross correlate two spectra in wavelength space
@@ -145,6 +195,7 @@ def cross_correlate( flux_a, flux_b, wave_a=None, wave_b=None, window=None, subs
 
     return shift
 
+#-------------------------------------------------------------------------------
 
 def linearize( flux, wave, dispersion=None ):
     """ Return flux and wave arrays with a linear wavelength scale
@@ -163,3 +214,4 @@ def linearize( flux, wave, dispersion=None ):
 
     return out_flux, out_wave
 
+#-------------------------------------------------------------------------------
