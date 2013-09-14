@@ -20,7 +20,10 @@ class assemble:
         if not self._files_available( rootname ):
             raise IOError('Missing files')
 
+        self.outname = rootname + '_x1d.fits'
         
+        self.hdu = pyfits.open( rootname + '_c0f.fits' )
+
         self.wavelength_file = rootname + '_c0f.fits'
         self.flux_file = rootname + '_c1f.fits'
         self.error_file = rootname + '_c2f.fits'
@@ -32,6 +35,8 @@ class assemble:
         self.error = self._get_data( self.error_file )
         self.background = self._get_data( self.background_file )
         self.dq = self._get_data( self.dq_file )
+
+        self._merge()
 
         self._monotonize_all()
 
@@ -58,7 +63,11 @@ class assemble:
 
 
     def _monotonize_all(self):
-        
+        """ Make sure all arrays are monotonically increasing with 
+        wavelength.
+
+        """
+
         sorted_index = np.argsort( self.wavelength )
         
         self.wavelength = self.wavelength[ sorted_index ]
@@ -68,5 +77,74 @@ class assemble:
         self.dq = self.dq[ sorted_index ]
 
 
-    def write(self, outname):
-        pass
+    def _merge(self):
+        """This is not very good and should be modified as soon as this
+        data is actually needed
+
+
+        """
+
+        all_wavelengths = list( set( self.wavelength ) )
+        
+        new_wavelength = []
+        new_flux = []
+        new_error = []
+        new_background = []
+        new_dq = []
+
+        for w in all_wavelengths:
+            index = np.where( self.wavelength == w )[0]
+
+            new_wavelength.append( w )
+            new_flux.append( np.mean( self.flux[index] ) )
+            new_error.append( np.mean( self.error[index] ) )
+            new_background.append( np.mean( self.background[index] ) )
+            
+            new_dq.append( self._bool_or( self.dq[index] ) )
+
+        self.wavelength = np.array( new_wavelength )
+        self.flux = np.array( new_flux )
+        self.error = np.array( new_error )
+        self.backgorund = np.array( new_background )
+        self.dq = np.array( new_dq )
+
+
+    def _bool_or(self, bool_values):
+        out_bool = 0
+        
+        for item in bool_values:
+            out_bool = out_bool | item
+
+        return out_bool
+        
+
+    def write(self, outname=None, clobber=False):
+        """ Write out to FITS file
+        """
+
+        if isinstance( outname, str ):
+            self.outname = outname
+
+        hdu_out = pyfits.HDUList(pyfits.PrimaryHDU())
+
+        keyword_list = ['INSTRUME', 'DETECTOR', 'GRATING', 'APERTURE',
+                        'ROOTNAME', 'TARGNAME', 
+                        'RA_TARG', 'DEC_TARG', 'DATE-OBS', 'TIME-OBS',
+                        'EXPSTART', 'EXPEND', 'EXPTIME', 'OBSMODE', 
+                        'PROPOSID', 'FP_SPLIT']
+
+        for kw in keyword_list:
+            hdu_out[0].header[kw] = self.hdu[0].header[kw]
+ 
+        wavelength_col = pyfits.Column('wavelength', 'D', 'second', array=self.wavelength)
+        flux_col = pyfits.Column('flux', 'D', 'ergs/s', array=self.flux)
+        error_col = pyfits.Column('error', 'D', 'counts', array=self.error)
+        bkgnd_col = pyfits.Column('background', 'D', 'cnts', array=self.background)
+        dq_col = pyfits.Column('dq', 'D', 'cnts', array=self.dq)
+
+        tab = pyfits.new_table( [wavelength_col, flux_col, error_col,
+                                 bkgnd_col, dq_col] )
+
+        hdu_out.append( tab )
+
+        hdu_out.writeto( self.outname, clobber=clobber )  
