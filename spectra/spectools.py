@@ -122,6 +122,12 @@ def fft_correlate(a,b,alims=(0,-1),blims=None,dispersion=None):
     if blims == None: 
         blims=alims
 
+    if len(a) > len(b):
+        alims = (0, -1* (1 + len(a) - len(b) ) )
+    
+    if len(b) > len(a):
+        blims = (0, -1 * (1 + len(b) - len(a) ) )
+
     c = (scipy.ifft(scipy.fft(a[alims[0]:alims[1]])*scipy.conj(scipy.fft(b[blims[0]:blims[1]])))).real
 
     shift = argmax(c)
@@ -184,6 +190,17 @@ def cross_correlate( flux_a, flux_b, wave_a=None, wave_b=None, window=None, subs
     
     #sub sample
     dispersion /= subsample
+
+    low_wave = max( wave_a.min(), wave_b.min() )
+    high_wave = min( wave_a.max(), wave_b.max() )
+
+    index = np.where( (wave_a < high_wave) & (wave_a > low_wave) )[0]
+    flux_a = flux_a[ index ]
+    wave_a = wave_a[ index ]
+
+    index = np.where( (wave_b < high_wave) & (wave_b > low_wave) )[0]
+    flux_b = flux_b[ index ]
+    wave_b = wave_b[ index ]
 
     flux_a, wave_a = linearize( flux_a, wave_a, dispersion )
     flux_b, wave_b = linearize( flux_b, wave_b, dispersion )
