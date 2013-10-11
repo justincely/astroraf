@@ -20,12 +20,12 @@ def remake_asn( asn_name, member_ext='_x1d.fits', product_ext='_x1dsum.fits',
     from calcos import fpavg
     import os
 
-    if not 'lref' in os.environ.keys():
+    if not 'lref' in os.environ:
         os.environ['lref'] = '/grp/hst/cdbs/lref/'
 
     members, product = read_asn( asn_name )
 
-    missing_members = [ item for item in members if os.path.exists( item ) ]
+    missing_members = [ item for item in members if not os.path.exists( item + member_ext ) ]
 
     if len( missing_members ) and (not allow_missing):
         raise IOError( "The following members were not found\n %s"% 
