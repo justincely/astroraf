@@ -10,14 +10,12 @@ import pyfits
 import matplotlib.pyplot as plt
 import sys
 import numpy
-import glob
 import os
 
 from .ttag_funcs import ttag_image
 from astroraf.math.utils import gauss_kern, blur_image
 from astroraf.plotting import init_plots
 
-from matplotlib.patches import Rectangle
 from Tkinter import Tk, IntVar, StringVar, Frame, Button, Menu, Label, Radiobutton, OptionMenu, W, N, S, E, Checkbutton, Entry, END, Toplevel
 import tkFileDialog
 import Tkconstants
@@ -26,72 +24,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolb
 
 data_dir = '/user/ely/COS/COS_layout/'
 
-
-def find_contiguous(input_array):
-    """DocString
-    """
-    try:
-        np
-    except:
-        import numpy as np
-    regions = []
-    padding = 1
-
-    shape = input_array.shape
-    valid_index = np.where(input_array > 0)
-    found_array = np.zeros((shape))
-    for i in xrange(shape[0]):
-        # print i
-        for j in xrange(shape[1]):
-            if input_array[i, j] and not found_array[i, j]:
-                points = find_extent(input_array, j, i)
-                print i, j, len(points)
-                if len(points) <= 4:
-                    continue
-                xs = numpy.array([item[0] for item in points])
-                ys = numpy.array([item[1] for item in points])
-                lx = xs.min() - padding
-                ly = ys.min() - padding
-                dx = (xs.max() + padding - lx) + 1
-                dy = (ys.max() + padding - ly) + 1
-
-                regions.append((lx, dx, ly, dy))
-                found_array[ly:ly + dy, lx:lx + dx] = 1
-
-    return list(set(regions))
-
-
-def get_neighbors(input_array, x, y):
-    neighbors = []
-    for i in [-2, -1, 0, 1, 2]:
-        for j in [-2, -1, 0, 1, 2]:
-            if i != j:
-                if input_array[y + i, x + j]:
-                    neighbors.append((x + j, y + i))
-
-    return neighbors
-
-
-def find_extent(input_array, initial_x, initial_y):
-    MORE_TO_CHECK = True
-    all_points = [(initial_x, initial_y)]
-
-    while MORE_TO_CHECK:
-        xs = [item[0] for item in all_points]
-        ys = [item[1] for item in all_points]
-
-        starting_size = len(all_points)
-        for x, y in zip(xs, ys):
-            new_points = get_neighbors(input_array, x, y)
-            for point in new_points:
-                if not point in all_points:
-                    all_points.append(point)
-
-        ending_size = len(all_points)
-        if starting_size == ending_size:
-            MORE_TO_CHECK = False
-
-    return all_points
+#-------------------------------------------------------------------------------
 
 
 class App:
@@ -111,31 +44,21 @@ class App:
         self.ymax = StringVar()
         self.vmin = StringVar()
         self.vmax = StringVar()
-        self.vmin.set(0)
-        self.vmax.set(0)
 
         self.segment = StringVar()
-        self.segment.set('A')
         self.extract = StringVar()
-        self.extract.set('None')
         self.extract_offset = IntVar()
-        self.extract_offset.set(0)
         self.cmap = StringVar()
-        self.cmap.set('gist_yarg')
         self.dq_show = StringVar()
-        self.dq_show.set('184')
         self.infile = StringVar()
         self.draw = StringVar()
-        self.draw.set('Modal Gain')
         self.degrade_loc = StringVar()
         self.degrade_years = StringVar()
         self.degrade_width = StringVar()
         self.degrade_xshift = StringVar()
         self.degrade_array = IntVar()
         self.N_degraded = IntVar()
-        self.N_degraded.set(0)
         self.grid_limits = IntVar()
-        self.grid_limits.set(1)
 
         self.data_file = None
         self.Againmap = None
@@ -147,7 +70,10 @@ class App:
 
         self.last = None
 
-        # -----Open files to speed things up----#
+        self.set_default_values()
+
+        # ---End variables--- #
+
         self.myParent = parent
         self.myContainer = Frame(parent)
         self.myParent.bind('<Return>', self.update_plot)
@@ -167,58 +93,8 @@ class App:
             command=self.clear_axis)
         self.clear_button.grid(row=2, column=0)
 
-        # -----Save button---------#
-        #self.savefig=Button(self.myContainer, text='Save Figure', command=self.save_fig)
-        #self.savefig.grid(row=2, column=0)
-        # ----Now in menu----------#
+        self.menubar = self.add_menubar( parent )
 
-        # -----------Define Quit Button--------#
-        #self.quitbutton = Button(self.myContainer, text="QUIT", fg="red", command=self.myContainer.quit)
-        #self.quitbutton.grid(row = 1, column = 1)
-        # ---------Now in Menu-----------------#
-
-        # ----------Menu-------------#
-        menubar = Menu(parent)
-
-        # create a pulldown menu, and add it to the menu bar
-        filemenu = Menu(menubar, tearoff=0)
-        filemenu.add_command(label="Open", command=self.open_file)
-        filemenu.add_command(label="Save", command=self.save_current)
-        filemenu.add_separator()
-
-        filemenu.add_command(label="Exit", command=self.exit)
-        menubar.add_cascade(label="File", menu=filemenu)
-
-        # create more pulldown menus
-        toolmenu = Menu(menubar, tearoff=0)
-        toolmenu.add_command(label="Open Toolbox", command=self.dq_tools)
-        toolmenu.add_command(label="Find Low", command=self.find_low)
-        #toolmenu.add_command(label="Paste", command=self.hello)
-        menubar.add_cascade(label="Tools", menu=toolmenu)
-
-        helpmenu = Menu(menubar, tearoff=0)
-        helpmenu.add_command(label="Show Help", command=self.help_file)
-        menubar.add_cascade(label="Help", menu=helpmenu)
-        # submenu
-        cmapmenu = Menu(toolmenu, tearoff=0)
-        cmapmenu.add_radiobutton(
-            label='Grey',
-            variable=self.cmap,
-            value='gist_yarg')
-        cmapmenu.add_radiobutton(
-            label='Prism',
-            variable=self.cmap,
-            value='prism')
-        cmapmenu.add_radiobutton(label='Jet', variable=self.cmap, value='jet')
-        cmapmenu.add_radiobutton(
-            label='Ncar',
-            variable=self.cmap,
-            value='gist_ncar')
-        #cmapmenu.add_radiobutton(label='autumn', variable=self.cmap, value='autumn', command=self.set_cmap(self.cmap))
-        #cmapmenu.add_radiobutton(label='spring', variable=self.cmap, value='spring', command=self.set_cmap(self.cmap))
-        toolmenu.insert_cascade(index=2, label='Select Cmap', menu=cmapmenu)
-
-        self.menubar = menubar
         # display the menu
         parent.config(menu=self.menubar)
 
@@ -268,12 +144,6 @@ class App:
             padx=3,
             pady=3)
 
-        #self.toggle_gain = Checkbutton(self.myContainer, text="Modal Gain Map", variable=self.show_gain)
-        #self.toggle_gain.grid(row =1, column = 3, sticky = W, padx = 3, pady = 3)
-
-        #self.degrade_label= Label(self.myContainer, text = 'Degrade Gain')
-        #self.degrade_label.config(fg = 'blue')
-        #self.degrade_label.grid(row=2, column=2, padx=3, pady=3)
         self.toggle_degrade = Checkbutton(
             self.myContainer,
             text="Degrade Gain Map",
@@ -346,24 +216,6 @@ class App:
             sticky=E,
             padx=3,
             pady=3)
-
-        # self.degrade_years_entry.grid_remove()
-        # self.degrade_loc_entry.grid_remove()
-        # self.toggle_degrade.grid_remove()
-        # self.toggle_degrade.grid_remove()
-        #self.toggle_limits=Radiobutton(self.myContainer, text="Set Plot Limits", indicatoron=0, variable=self.grid_limits, value=1, command=self.show_limit_boxes).grid(row=5, column=0)
-        #self.toggle_limits=Radiobutton(self.myContainer, text="Set Degrade Params", indicatoron=0, variable=self.grid_limits, value=2, command=self.show_limit_boxes).grid(row=5, column=1)
-        #self.toggle_limits=Radiobutton(self.myContainer, text="Add DQ Flags", indicatoron=0, variable=self.grid_limits, value=3, command=self.show_limit_boxes).grid(row=5, column=2)
-        '''
-        self.toggle_illumination = Checkbutton(self.myContainer, text="Summed Exposure", variable=self.show_illumination)
-        self.toggle_illumination.grid(row =2, column = 3, sticky = W, padx = 3, pady = 3)
-
-        self.toggle_dark = Checkbutton(self.myContainer, text="Summed Dark", variable=self.show_dark)
-        self.toggle_dark.grid(row =1, column = 4, sticky = W, padx = 3, pady = 3)
-
-        #self.toggle_spec = Checkbutton(self.myContainer, text="Sample spectrum", variable=self.show_spectrum)
-        #self.toggle_spec.grid(row =3, column = 3, sticky = W, padx = 3, pady = 3)
-        '''
 
         self.toggle_dq = Checkbutton(
             self.myContainer,
@@ -594,6 +446,64 @@ class App:
 
         self.myContainer.pack()
 
+
+    def set_default_values(self):
+        """ Set variables and boxes to default """
+        self.vmin.set(0)
+        self.vmax.set(0)
+        self.dq_show.set('184')
+        self.segment.set('A')
+        self.N_degraded.set(0)
+        self.extract.set('None')
+        self.draw.set('Modal Gain')
+        self.extract_offset.set(0)
+        self.cmap.set('gist_yarg')
+        self.grid_limits.set(1)
+
+
+    def add_menubar(self, parent):
+        """ Add menubar to figure """
+        menubar = Menu(parent)
+
+        # create a pulldown menu, and add it to the menu bar
+        filemenu = Menu(menubar, tearoff=0)
+        filemenu.add_command(label="Open", command=self.open_file)
+        filemenu.add_command(label="Save", command=self.save_current)
+        filemenu.add_separator()
+
+        filemenu.add_command(label="Exit", command=self.exit)
+        menubar.add_cascade(label="File", menu=filemenu)
+
+        # create more pulldown menus
+        toolmenu = Menu(menubar, tearoff=0)
+        toolmenu.add_command(label="Open Toolbox", command=self.dq_tools)
+        toolmenu.add_command(label="Find Low", command=self.find_low)
+        menubar.add_cascade(label="Tools", menu=toolmenu)
+
+        helpmenu = Menu(menubar, tearoff=0)
+        helpmenu.add_command(label="Show Help", command=self.help_file)
+        menubar.add_cascade(label="Help", menu=helpmenu)
+
+        # submenu
+        cmapmenu = Menu(toolmenu, tearoff=0)
+        cmapmenu.add_radiobutton(
+            label='Grey',
+            variable=self.cmap,
+            value='gist_yarg')
+        cmapmenu.add_radiobutton(
+            label='Prism',
+            variable=self.cmap,
+            value='prism')
+        cmapmenu.add_radiobutton(label='Jet', variable=self.cmap, value='jet')
+        cmapmenu.add_radiobutton(
+            label='Ncar',
+            variable=self.cmap,
+            value='gist_ncar')
+        toolmenu.insert_cascade(index=2, label='Select Cmap', menu=cmapmenu)
+
+        return menubar
+
+
     def add_dq(self):
         seg = self.segment.get()
         colors = {
@@ -635,7 +545,9 @@ class App:
                     plt.annotate(str(dq), (lx, ly + dy), color=colors[int(dq)])
         self.canvas.show()
 
+
     def clear_axis(self):
+        """ Clear plot of all selections """
         plt.figure(1)
         plt.subplot(1, 1, 1)
         plt.cla()
@@ -650,6 +562,7 @@ class App:
         self.Againmap = None
         self.Bgainmap = None
         self.N_degraded.set(0)
+
 
     def degrade(self, array):
         '''
@@ -722,6 +635,7 @@ class App:
         self.affected_pixels.set('0')
         self.affected_columns = StringVar()
         self.affected_columns.set('0')
+
         # -----------Define Close Button--------#
         self.closebutton2 = Button(
             self.toolswindow,
@@ -943,10 +857,8 @@ class App:
             elif seg == 'B':
                 extension = 2
 
-            #data = pyfits.getdata(self.data_file,extension)
-            # C1=plt.contourf(gainmap.clip(max=vmax),levels,cmap=plt.get_cmap(self.cmap.get()))
             C1 = plt.imshow(
-                ttag_image(data_file),
+                ttag_image( self.data_file),
                 interpolation='nearest',
                 aspect='auto',
                 cmap=plt.get_cmap(self.cmap.get()))  # ,vmin=,vmax=vmax)
@@ -1479,14 +1391,16 @@ pixels and %1.3f percent of colums will be flagged.''' % (self.segment2.get(), s
         self.data_file = filename
 
     def save_current(self):
+        """ Save file from menu """
         tkFileDialog.asksaveasfile()
 
     def save_fig(self):
-        plt.figure(2)
+        pylab.figure(2)
         out_file = tkFileDialog.asksaveasfilename()
-        plt.savefig(out_file)
+        pylab.savefig(out_file)
 
     def set_cmap(self, cmap):
+        """ Change the colormap of the image """
         if cmap == 'autumn':
             plt.autumn()
         elif cmap == 'spring':
@@ -1541,7 +1455,8 @@ pixels and %1.3f percent of colums will be flagged.''' % (self.segment2.get(), s
             self.dq_show_label.grid_remove()
             self.dq_show_box.grid_remove()
 
-    def update_plot(self, event):
+    def update_plot(self):
+        """ Redraw figure with new limits """
         plt.figure(1)
         if self.xmin.get() != 'ALL' and self.xmax.get() != 'ALL':
             plt.xlim(int(self.xmin.get()), int(self.xmax.get()))
@@ -1553,8 +1468,80 @@ pixels and %1.3f percent of colums will be flagged.''' % (self.segment2.get(), s
             plt.ylim(0, 1024)
         self.canvas.show()
 
+#-------------------------------------------------------------------------------
+
+def find_contiguous(input_array):
+    """ Find set of contiguous regins in input array. """
+    try:
+        np
+    except:
+        import numpy as np
+    regions = []
+    padding = 1
+
+    shape = input_array.shape
+    valid_index = np.where(input_array > 0)
+    found_array = np.zeros((shape))
+    for i in xrange(shape[0]):
+        # print i
+        for j in xrange(shape[1]):
+            if input_array[i, j] and not found_array[i, j]:
+                points = find_extent(input_array, j, i)
+                print i, j, len(points)
+                if len(points) <= 4:
+                    continue
+                xs = numpy.array([item[0] for item in points])
+                ys = numpy.array([item[1] for item in points])
+                lx = xs.min() - padding
+                ly = ys.min() - padding
+                dx = (xs.max() + padding - lx) + 1
+                dy = (ys.max() + padding - ly) + 1
+
+                regions.append((lx, dx, ly, dy))
+                found_array[ly:ly + dy, lx:lx + dx] = 1
+
+    return list(set(regions))
+
+#-------------------------------------------------------------------------------
+
+def get_neighbors(input_array, x, y):
+    """ Return pixels near x,y that also contain counts """
+    neighbors = []
+    for i in [-2, -1, 0, 1, 2]:
+        for j in [-2, -1, 0, 1, 2]:
+            if i != j:
+                if input_array[y + i, x + j]:
+                    neighbors.append((x + j, y + i))
+
+    return neighbors
+
+#-------------------------------------------------------------------------------
+
+def find_extent(input_array, initial_x, initial_y):
+    MORE_TO_CHECK = True
+    all_points = [(initial_x, initial_y)]
+
+    while MORE_TO_CHECK:
+        xs = [item[0] for item in all_points]
+        ys = [item[1] for item in all_points]
+
+        starting_size = len(all_points)
+        for x, y in zip(xs, ys):
+            new_points = get_neighbors(input_array, x, y)
+            for point in new_points:
+                if not point in all_points:
+                    all_points.append(point)
+
+        ending_size = len(all_points)
+        if starting_size == ending_size:
+            MORE_TO_CHECK = False
+
+    return all_points
+
+#-------------------------------------------------------------------------------
 
 def main():
+    """ Run the GUI """
     root = Tk()
     app = App(root)
     root.mainloop()
