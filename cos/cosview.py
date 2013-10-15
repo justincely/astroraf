@@ -36,7 +36,6 @@ class App:
         self.show_spectrum = IntVar()
         self.show_dark = IntVar()
         self.show_dq = IntVar()
-        self.show_mydq = IntVar()
 
         self.xmin = StringVar()
         self.xmax = StringVar()
@@ -68,8 +67,6 @@ class App:
         self.Adark = None
         self.Bdark = None
 
-        self.last = None
-
         self.set_default_values()
 
         # ---End variables--- #
@@ -80,17 +77,15 @@ class App:
         self.myParent.title('COS Layout Planner')
 
         # ------------Master draw button-----------#
-        self.redraw = Button(
-            self.myContainer,
-            text="Draw Map",
-            command=self.draw_all)
+        self.redraw = Button( self.myContainer,
+                              text="Show Image",
+                              command=self.draw_all)
         self.redraw.grid(row=1, column=0, sticky=N)
 
         # -----------Define Clear Plot Button--------#
-        self.clear_button = Button(
-            self.myContainer,
-            text="Clear Plot",
-            command=self.clear_axis)
+        self.clear_button = Button( self.myContainer,
+                                    text="Clear Plot",
+                                    command=self.clear_axis)
         self.clear_button.grid(row=2, column=0)
 
         self.menubar = self.add_menubar( parent )
@@ -99,66 +94,56 @@ class App:
         parent.config(menu=self.menubar)
 
         # ----Segment Button---#
-        self.segment_selector_label = Label(
-            self.myContainer,
-            text='Segment Selector')
+        self.segment_selector_label = Label( self.myContainer,
+                                             text='Segment Selector')
         self.segment_selector_label.config(fg='blue')
         self.segment_selector_label.grid(row=0, column=1, padx=3, pady=3)
-        self.segment_selector = Radiobutton(
-            self.myContainer,
-            text="A",
-            variable=self.segment,
-            value='A',
-            indicatoron=1).grid(
-            row=1,
-            column=1,
-            padx=3,
-            pady=3)
-        self.segment_selector = Radiobutton(
-            self.myContainer,
-            text="B",
-            variable=self.segment,
-            value='B',
-            indicatoron=1).grid(
-            row=2,
-            column=1,
-            padx=3,
-            pady=3)
-
+        self.segment_selector = Radiobutton( self.myContainer,
+                                             text="A",
+                                             variable=self.segment,
+                                             value='A',
+                                             indicatoron=1).grid( row=1,
+                                                                  column=1,
+                                                                  padx=3,
+                                                                  pady=3)
+        self.segment_selector = Radiobutton( self.myContainer,
+                                             text="B",
+                                             variable=self.segment,
+                                             value='B',
+                                             indicatoron=1).grid( row=2,
+                                                                  column=1,
+                                                                  padx=3,
+                                                                  pady=3)
+                                             
         # -----------Define drawing boxes------------#
         self.drawing_label = Label(self.myContainer, text='Map to draw')
         self.drawing_label.config(fg='blue')
         self.drawing_label.grid(row=0, column=2, padx=3, pady=3)
 
-        self.draw_what = OptionMenu(
-            self.myContainer,
-            self.draw,
-            'Data File',
-            'Modal Gain',
-            'Summed Exposure',
-            'Summed Dark')
-        self.draw_what.grid(
-            row=1,
-            column=2,
-            sticky=W + E,
-            padx=3,
-            pady=3)
+        self.draw_what = OptionMenu( self.myContainer,
+                                     self.draw,
+                                     'Data File',
+                                     'Modal Gain',
+                                     'Deuterium Flats',
+                                     'Summed Dark')
+        self.draw_what.grid( row=1,
+                             column=2,
+                             sticky=W + E,
+                             padx=3,
+                             pady=3)
 
-        self.toggle_degrade = Checkbutton(
-            self.myContainer,
-            text="Degrade Gain Map",
-            variable=self.degrade_array)
+        self.toggle_degrade = Checkbutton( self.myContainer,
+                                           text="Degrade Gain Map",
+                                           variable=self.degrade_array)
         self.toggle_degrade.grid(row=2, column=2, sticky=W + E, padx=3, pady=3)
 
-        self.degrade_loc_entry = Entry(
-            self.myContainer,
-            textvariable=self.degrade_loc)
-        self.degrade_loc_entry.grid(
-            row=3,
-            column=2,
-            sticky=W + E,
-            padx=3,
-            pady=3)
+        self.degrade_loc_entry = Entry( self.myContainer,
+                                        textvariable=self.degrade_loc)
+        self.degrade_loc_entry.grid( row=3,
+                                     column=2,
+                                     sticky=W + E,
+                                     padx=3,
+                                     pady=3)
         self.degrade_loc_label = Label(self.myContainer, text='Y Loc')
         self.degrade_loc_label.config(fg='blue')
         self.degrade_loc_label.grid(row=3, column=1, sticky=E, padx=3, pady=3)
@@ -217,25 +202,6 @@ class App:
             padx=3,
             pady=3)
 
-        self.toggle_dq = Checkbutton(
-            self.myContainer,
-            text="DQ Flags",
-            variable=self.show_dq,
-            indicatoron=1)
-        self.toggle_dq.grid(row=2, column=3, sticky=W, padx=3, pady=3)
-
-        self.toggle_mydq = Checkbutton(
-            self.myContainer,
-            text="New DQ Flags",
-            variable=self.show_mydq,
-            indicatoron=1)
-        self.toggle_mydq.grid(
-            row=3,
-            column=3,
-            sticky=W,
-            padx=3,
-            pady=3)
-
         # --------DQ flags to show-------#
         self.dq_show_label = Label(
             self.myContainer,
@@ -257,11 +223,6 @@ class App:
             pady=3)
         self.dq_show_box.delete(0, END)
         self.dq_show_box.insert(0, 184)
-
-        # self.toggle_dq.grid_remove()
-        # self.toggle_mydq.grid_remove()
-        # self.dq_show_label.grid_remove()
-        # self.dq_show_box.grid_remove()
 
         # ------------Master draw button-----------#
         self.draw_dq = Button(
@@ -412,10 +373,6 @@ class App:
             padx=3,
             pady=3)
 
-        # self.vmax_box_label.grid_remove()
-        # self.vmax_box.grid_remove()
-        # self.vmin_box_label.grid_remove()
-        # self.vmin_box.grid_remove()
         # -------Plots-------#
         init_plots()
         plt.ioff()
@@ -477,7 +434,6 @@ class App:
         # create more pulldown menus
         toolmenu = Menu(menubar, tearoff=0)
         toolmenu.add_command(label="Open Toolbox", command=self.dq_tools)
-        toolmenu.add_command(label="Find Low", command=self.find_low)
         menubar.add_cascade(label="Tools", menu=toolmenu)
 
         helpmenu = Menu(menubar, tearoff=0)
@@ -503,8 +459,8 @@ class App:
 
         return menubar
 
-
-    def add_dq(self):
+    def add_dq(self, bpixtab='bpix.fits', **kwargs):
+        """ Plot DQ regions """
         seg = self.segment.get()
         colors = {
             2: 'b',
@@ -515,34 +471,21 @@ class App:
             1024: 'gold',
             4096: 'm',
             8192: 'orange'}
-        if self.show_dq.get():
-            dq_to_show = int(self.dq_show.get())
-            bpix = pyfits.open('bpix.fits')
-            for line in bpix[1].data:
-                if line[0] == 'FUV' + seg and (line[5] & dq_to_show):
-                    lx = line['LX']
-                    ly = line['LY']
-                    dx = line['DX']
-                    dy = line['DY']
-                    dq = line['DQ']
-                    x = [lx, lx + dx, lx + dx, lx, lx]
-                    y = [ly, ly, ly + dy, ly + dy, ly]
-                    plt.plot(x, y, '-', lw=2, color=colors[int(dq)])
-                    plt.annotate(str(dq), (lx, ly), color=colors[int(dq)])
-        if self.show_mydq.get():
-            dq_to_show = int(self.dq_show.get())
-            bpix = pyfits.open('new_bpix.fits')
-            for line in bpix[1].data:
-                if line[0] == 'FUV' + seg and (line[5] & dq_to_show):
-                    lx = line['LX']
-                    ly = line['LY']
-                    dx = line['DX']
-                    dy = line['DY']
-                    dq = line['DQ']
-                    x = [lx, lx + dx, lx + dx, lx, lx]
-                    y = [ly, ly, ly + dy, ly + dy, ly]
-                    plt.plot(x, y, '--', lw=2, color=colors[int(dq)])
-                    plt.annotate(str(dq), (lx, ly + dy), color=colors[int(dq)])
+
+        dq_to_show = int( self.dq_show.get() )
+        bpix = pyfits.open( bpixtab )
+        for line in bpix[1].data:
+            if line[0] == 'FUV' + seg and (line[5] & dq_to_show):
+                lx = line['LX']
+                ly = line['LY']
+                dx = line['DX']
+                dy = line['DY']
+                dq = line['DQ']
+                x = [lx, lx + dx, lx + dx, lx, lx]
+                y = [ly, ly, ly + dy, ly + dy, ly]
+                plt.plot(x, y, color=colors[int(dq)], **kwargs)
+                plt.annotate(str(dq), (lx, ly), color=colors[int(dq)])
+
         self.canvas.show()
 
 
@@ -552,7 +495,6 @@ class App:
         plt.subplot(1, 1, 1)
         plt.cla()
         # self.toggle_dq.deselect()
-        # self.toggle_mydq.deselect()
         # self.toggle_spec.deselect()
         # self.canvas.delete(all)
         self.canvas.show()
@@ -625,12 +567,8 @@ class App:
         self.width.set('20')
         self.draw_DQ = IntVar()
         self.draw_DQ.set(0)
-        self.draw_newDQ = IntVar()
-        self.draw_newDQ.set(1)
         self.SDQFLAG = IntVar()
         self.SDQFLAG.set(184)
-        self.segment2 = StringVar()
-        self.segment2.set('A')
         self.affected_pixels = StringVar()
         self.affected_pixels.set('0')
         self.affected_columns = StringVar()
@@ -768,49 +706,6 @@ class App:
         self.height_box.insert(0, 500)
         self.width_box.insert(0, '20')
 
-        # ----Segment Button---#
-        self.segment_selector_label2 = Label(
-            self.toolswindow,
-            text='Segment Selector')
-        self.segment_selector_label2.config(fg='blue')
-        self.segment_selector_label2.grid(row=7, column=0, padx=3, pady=3)
-        self.segment_selector2 = Radiobutton(
-            self.toolswindow,
-            text="A",
-            variable=self.segment2,
-            value='A').grid(
-            row=8,
-            column=0,
-            padx=3,
-            pady=3)
-        self.segment_selector2 = Radiobutton(
-            self.toolswindow,
-            text="B",
-            variable=self.segment2,
-            value='B').grid(
-            row=9,
-            column=0,
-            padx=3,
-            pady=3)
-
-        # -----------DQ selectors---------------#
-        self.draw_dq = Checkbutton(
-            self.toolswindow,
-            text="DQ Flags",
-            variable=self.draw_DQ)
-        self.draw_dq.grid(row=8, column=1, sticky=W, padx=3, pady=3)
-
-        self.draw_newdq = Checkbutton(
-            self.toolswindow,
-            text="New DQ Flags",
-            variable=self.draw_newDQ)
-        self.draw_newdq.grid(
-            row=9,
-            column=1,
-            sticky=W,
-            padx=3,
-            pady=3)
-
         matplotlib.rcParams['figure.subplot.left'] = .15
         matplotlib.rcParams['figure.subplot.right'] = .85
         matplotlib.rcParams['figure.subplot.top'] = .85
@@ -822,11 +717,11 @@ class App:
         self.canvas2 = FigureCanvasTkAgg(self.fig2, master=self.toolswindow)
         self.canvas2.show()
         self.canvas2.get_tk_widget(
-        ).grid(row=13,
-               column=0,
-               rowspan=17,
-               columnspan=17,
-               sticky=N + W + E + S)
+            ).grid(row=13,
+                   column=0,
+                   rowspan=17,
+                   columnspan=17,
+                   sticky=N + W + E + S)
 
         self.toolswindow.mainloop()
 
@@ -1019,8 +914,7 @@ class App:
         ylim_a = (335, 699)
         xlim_b = (950, 15049)
         ylim_b = (400, 749)
-        # seg=self.segment.get()
-        seg = self.segment2.get()
+        seg = self.segment.get()
         if seg == 'A':
             xlim = xlim_a
             ylim = ylim_a
@@ -1028,31 +922,20 @@ class App:
             xlim = xlim_b
             ylim = ylim_b
         dq_array = numpy.zeros((1024, 16384), int)
-        if self.draw_DQ.get():
-            seg = self.segment2.get()
-            bpix = pyfits.open('bpix.fits')
-            for line in bpix[1].data:
-                if line[0] == 'FUV' + seg:
-                    lx = line['LX']
-                    ly = line['LY']
-                    dx = line['DX'] - 1  # width, not delta
-                    dy = line['DY'] - 1
-                    dq = line['DQ']
-                    subarray = dq_array[ly:ly + dy, lx:lx + dx]
-                    index = numpy.where(subarray != dq)
-                    dq_array[ly:ly + dy, lx:lx + dx][index] += dq
-        if self.draw_newDQ.get():
-            bpix = pyfits.open('new_bpix.fits')
-            for line in bpix[1].data:
-                if line[0] == 'FUV' + seg:
-                    lx = line['LX']
-                    ly = line['LY']
-                    dx = line['DX'] - 1  # width, not delta
-                    dy = line['DY'] - 1
-                    dq = line['DQ']
-                    subarray = dq_array[ly:ly + dy, lx:lx + dx]
-                    index = numpy.where(subarray != dq)
-                    dq_array[ly:ly + dy, lx:lx + dx][index] += dq
+ 
+        seg = self.segment.get()
+        bpix = pyfits.open('bpix.fits')
+        for line in bpix[1].data:
+            if line[0] == 'FUV' + seg:
+                lx = line['LX']
+                ly = line['LY']
+                dx = line['DX'] - 1  # width, not delta
+                dy = line['DY'] - 1
+                dq = line['DQ']
+                subarray = dq_array[ly:ly + dy, lx:lx + dx]
+                index = numpy.where(subarray != dq)
+                dq_array[ly:ly + dy, lx:lx + dx][index] += dq
+  
         # plt.contourf(dq_array,aspect='auto',levels=[0,2,4,8,16,32,64,128,256])
         sdqflags = int(self.SDQFLAG.get())
         height = int(self.height.get())
@@ -1095,7 +978,7 @@ class App:
         ylim_a = (335, 699)
         xlim_b = (950, 15049)
         ylim_b = (400, 749)
-        seg = self.segment2.get()
+        seg = self.segment.get()
         if seg == 'A':
             xlim = xlim_a
             ylim = ylim_a
@@ -1103,31 +986,20 @@ class App:
             xlim = xlim_b
             ylim = ylim_b
         dq_array = numpy.zeros((1024, 16384), int)
-        if self.draw_DQ.get():
-            seg = self.segment2.get()
-            bpix = pyfits.open('bpix.fits')
-            for line in bpix[1].data:
-                if line[0] == 'FUV' + seg:
-                    lx = line['LX']
-                    ly = line['LY']
-                    dx = line['DX'] - 1  # width, not delta
-                    dy = line['DY'] - 1  # width, not delta
-                    dq = line['DQ']
-                    subarray = dq_array[ly:ly + dy, lx:lx + dx]
-                    index = numpy.where(subarray != dq)
-                    dq_array[ly:ly + dy, lx:lx + dx][index] += dq
-        if self.draw_newDQ.get():
-            bpix = pyfits.open('new_bpix.fits')
-            for line in bpix[1].data:
-                if line[0] == 'FUV' + seg:
-                    lx = line['LX']
-                    ly = line['LY']
-                    dx = line['DX'] - 1
-                    dy = line['DY'] - 1
-                    dq = line['DQ']
-                    subarray = dq_array[ly:ly + dy, lx:lx + dx]
-                    index = numpy.where(subarray != dq)
-                    dq_array[ly:ly + dy, lx:lx + dx][index] += dq
+
+        seg = self.segment.get()
+        bpix = pyfits.open('bpix.fits')
+        for line in bpix[1].data:
+            if line[0] == 'FUV' + seg:
+                lx = line['LX']
+                ly = line['LY']
+                dx = line['DX'] - 1  # width, not delta
+                dy = line['DY'] - 1  # width, not delta
+                dq = line['DQ']
+                subarray = dq_array[ly:ly + dy, lx:lx + dx]
+                index = numpy.where(subarray != dq)
+                dq_array[ly:ly + dy, lx:lx + dx][index] += dq
+
         sweep = range(height - 1 * width, height + 1 * width)
         for h in sweep:
             if (h - 1 * width > ylim[0]) & (h + 1 * width < ylim[1]):
@@ -1163,143 +1035,14 @@ class App:
         plt.plot(xs, ys, '-.', lw=6)
         extracted = dq_array[
             height -
-            width /
-            2:height +
-            width /
-            2,
-            xlim[
-                0]:xlim[
-                1]]
+            width / 2:height + width / 2, xlim[0]:xlim[1]
+            ]
         index = numpy.where(sdqflags & extracted)
         self.height.set(height)
         self.affected_columns.set(
             100 * len(set(index[1])) / float(xlim[1] - xlim[0]))
         self.canvas.show()
         self.histogram(height, width)
-
-    def find_low(self, thresh=.5):
-        which = 'dark'
-        seg = self.segment.get()
-        xlim_a = (1176, 15219)
-        ylim_a = (414, 558)
-        xlim_b = (870, 14984)
-        ylim_b = (470, 608)
-        ylen = 3
-        xlen = 5
-        if seg == 'A':
-            infile = os.path.join(data_dir, '12676-all-A-2.fits')
-            lx = xlim_a[0]
-            ux = xlim_a[1]
-            ly = ylim_a[0]
-            uy = ylim_a[1]
-        elif seg == 'B':
-            infile = os.path.join(data, '12676-LV-B-2.fits')
-            lx = xlim_b[0]
-            ux = xlim_b[1]
-            ly = ylim_b[0]
-            uy = ylim_b[1]
-        if which == 'dark':
-            thresh = 2.0
-            ylen = 21
-            xlen = 13
-            if seg == 'A':
-                dark = pyfits.getdata('all_pha_0.fits', 1)
-                lx = 1172
-                ly = 340
-                ux = 15150
-                uy = 700
-            elif seg == 'B':
-                dark = pyfits.getdata('all_pha_0.fits', 2)
-                lx = 1040
-                ly = 402
-                ux = 14945
-                uy = 754
-            print 'Blurring array'
-            array = blur_image(dark, 10, 6)
-            # array=dark
-        else:
-            # print 'Blurring array'
-            # array=blur_image(pyfits.getdata(infile,1),10,6)
-            array = pyfits.getdata(infile, 1)
-        coords = []
-        for ystep in range(ly, uy - ylen):
-            print ystep
-            for xstep in range(lx, ux - xlen):
-                sub_array = array[ystep:ystep + ylen, xstep:xstep + xlen]
-                med = numpy.median(sub_array)
-                std = sub_array.std()
-                if which == 'dark':
-                    index = numpy.where(sub_array > ((med) * thresh))
-                else:
-                    index = numpy.where(sub_array < ((med) * thresh))
-                if len(index[0]) > 0:
-                    for i in range(len(index[0])):
-                        coords.append(
-                            (index[0][i] + ystep, index[1][i] + xstep))
-        coord_set = set(coords)
-        '''
-        final_coords=[]
-        length=len(coord_set)
-        for i,item in enumerate(coord_set):
-            print i,'/',length
-            if (coords.count(item)>=30) and (self.has_neighbor(item,coord_set)):
-                print 'True'
-                final_coords.append(item)
-	'''
-        final_coords = list(coord_set)
-        if len(final_coords) > 0:
-            xs = [line[1] for line in final_coords]
-            ys = [line[0] for line in final_coords]
-            '''
-            grid=numpy.zeros((1024,16384))
-            for y in ys:
-                for x in xs:
-                    grid[y,x]=1
-            y_cont=[]
-            x_cont=[]
-            for y in range(1024):
-                for x in range(16384):
-                    if len(y_cont)==0 & grid[y,x]==1:
-                        y_cont.append(y)
-                        x_cont.append(x)
-                        for i in range(len(60)):
-                            for j in range(len(60)):
-                                X=x+i
-                                Y=y+j
-                                if grid[Y,X]==1 & ((X-1 in x_cont) | (X+1 in x_cont) | (Y-1 in y_cont) | (Y+1 in y_cont)):
-                        y_cont.append(y)
-                        x_cont.append(x)
-            '''
-
-            plt.scatter(xs, ys)
-            self.canvas.show()
-
-            data_array = numpy.zeros((1024, 16384))
-            for x, y in zip(xs, ys):
-                data_array[y, x] = 1
-
-            regions = find_contiguous(data_array)
-            for region in regions:
-                lx = region[0]
-                dx = region[1]
-                ly = region[2]
-                dy = region[3]
-
-                x = [lx, lx + dx, lx + dx, lx, lx]
-                y = [ly, ly, ly + dy, ly + dy, ly]
-                print lx, ly, dx, dy
-                plt.plot(x, y, '-', lw=4, color='r', linestyle='-')
-            print 'Found all regions'
-            self.canvas.show()
-
-    def has_neighbor(self, point, coord_list):
-        neighbor = False
-        for y in (-1, 0, 1):
-            for x in (-1, 0, 1):
-                if not (x == 0 and y == 0):
-                    if (point[0] + y, point[1] + x) in coord_list:
-                        neighbor = True
-        return neighbor
 
     def help_file(self):
         self.helpwindow = Toplevel()
@@ -1325,7 +1068,7 @@ class App:
         xlim_b = (993, 15015)
         ylim_b = (371, 771)
         caption = False
-        seg = self.segment2.get()
+        seg = self.segment.get()
         if seg == 'A':
             xlim = xlim_a
             ylim = ylim_a
@@ -1351,7 +1094,7 @@ class App:
         plt.cla()
         plt.suptitle('Modal Gain')
         plt.title(
-            'Segment= %s, Y=%s, dy=%s, years=%s, xshift=%s' % (self.segment2.get(),
+            'Segment= %s, Y=%s, dy=%s, years=%s, xshift=%s' % (self.segment.get(),
                                                                self.height.get(),
                                                                self.width.get(),
                                                                self.degrade_years.get(
@@ -1359,7 +1102,6 @@ class App:
                                                                self.degrade_xshift.get(
                                                                )),
             fontsize=12)
-        # ax2.hist(gain_1d[index]*100,normed=True,bins=range(20),align='mid',color='r',alpha=.3)
         ax2.hist(gain_1d, normed=True, bins=range(20), align='mid', color='b')
         N_lte_3 = len(numpy.where(gain_1d <= 3)[0])
         N_tot = len(gain_1d)
@@ -1375,11 +1117,8 @@ class App:
         plt.ylabel('Normalized Counts')
         t = '''Modal Gain in extracted region of Segment %s.
 At Y=%s, dy=%s and SDQFLAGS=%s, %1.3f percent of
-pixels and %1.3f percent of colums will be flagged.''' % (self.segment2.get(), self.height.get(), self.width.get(), self.SDQFLAG.get(), float(self.affected_pixels.get()), float(self.affected_columns.get()))
-        # t='''Modal Gain in extracted region of Segment %s.
-# At Y=%s, dy=%s and SDQFLAGS=%s, %1.3f percent of
-# pixels and %1.3f percent of colums will be flagged.'''
-# %(self.segment2.get(),self.height.get(),self.width.get(),self.SDQFLAG.get(),float(self.affected_pixels.get()),float(self.affected_columns.get()))
+pixels and %1.3f percent of colums will be flagged.''' % (self.segment.get(), self.height.get(), self.width.get(), self.SDQFLAG.get(), float(self.affected_pixels.get()), float(self.affected_columns.get()))
+
         if caption:
             self.fig2.text(.1, .1, t, fontsize=12)
         self.canvas2.show()
@@ -1395,9 +1134,9 @@ pixels and %1.3f percent of colums will be flagged.''' % (self.segment2.get(), s
         tkFileDialog.asksaveasfile()
 
     def save_fig(self):
-        pylab.figure(2)
+        plt.figure(2)
         out_file = tkFileDialog.asksaveasfilename()
-        pylab.savefig(out_file)
+        plt.savefig(out_file)
 
     def set_cmap(self, cmap):
         """ Change the colormap of the image """
@@ -1408,56 +1147,11 @@ pixels and %1.3f percent of colums will be flagged.''' % (self.segment2.get(), s
 
         self.canvas.show()
 
-    def show_limit_boxes(self):
-        self.vmin_box.grid_remove()
-        self.vmax_box.grid_remove()
-        self.vmin_box_label.grid_remove()
-        self.vmax_box_label.grid_remove()
-        self.ymin_box.grid_remove()
-        self.ymax_box.grid_remove()
-        self.ymin_box_label.grid_remove()
-        self.ymax_box_label.grid_remove()
-        self.xmin_box.grid_remove()
-        self.xmax_box.grid_remove()
-        self.xmin_box_label.grid_remove()
-        self.xmax_box_label.grid_remove()
-
-        self.degrade_years_entry.grid_remove()
-        self.degrade_loc_entry.grid_remove()
-        self.toggle_degrade.grid_remove()
-
-        self.toggle_dq.grid_remove()
-        self.toggle_mydq.grid_remove()
-        self.dq_show_label.grid_remove()
-        self.dq_show_box.grid_remove()
-
-        which = int(self.grid_limits.get())
-        if which == 1:
-            self.vmin_box.grid()
-            self.vmax_box.grid()
-            self.vmin_box_label.grid()
-            self.vmax_box_label.grid()
-            self.ymin_box.grid()
-            self.ymax_box.grid()
-            self.ymin_box_label.grid()
-            self.ymax_box_label.grid()
-            self.xmin_box.grid()
-            self.xmax_box.grid()
-            self.xmin_box_label.grid()
-            self.xmax_box_label.grid()
-        elif which == 2:
-            self.degrade_years_entry.grid()
-            self.degrade_loc_entry.grid()
-            self.toggle_degrade.grid()
-        elif which == 3:
-            self.toggle_dq.grid_remove()
-            self.toggle_mydq.grid_remove()
-            self.dq_show_label.grid_remove()
-            self.dq_show_box.grid_remove()
-
-    def update_plot(self):
+    def update_plot(self, event):
         """ Redraw figure with new limits """
-        plt.figure(1)
+        print 'Trying to redraw'
+        plt.figure( 1 )
+
         if self.xmin.get() != 'ALL' and self.xmax.get() != 'ALL':
             plt.xlim(int(self.xmin.get()), int(self.xmax.get()))
         else:
@@ -1466,77 +1160,8 @@ pixels and %1.3f percent of colums will be flagged.''' % (self.segment2.get(), s
             plt.ylim(int(self.ymin.get()), int(self.ymax.get()))
         else:
             plt.ylim(0, 1024)
+
         self.canvas.show()
-
-#-------------------------------------------------------------------------------
-
-def find_contiguous(input_array):
-    """ Find set of contiguous regins in input array. """
-    try:
-        np
-    except:
-        import numpy as np
-    regions = []
-    padding = 1
-
-    shape = input_array.shape
-    valid_index = np.where(input_array > 0)
-    found_array = np.zeros((shape))
-    for i in xrange(shape[0]):
-        # print i
-        for j in xrange(shape[1]):
-            if input_array[i, j] and not found_array[i, j]:
-                points = find_extent(input_array, j, i)
-                print i, j, len(points)
-                if len(points) <= 4:
-                    continue
-                xs = numpy.array([item[0] for item in points])
-                ys = numpy.array([item[1] for item in points])
-                lx = xs.min() - padding
-                ly = ys.min() - padding
-                dx = (xs.max() + padding - lx) + 1
-                dy = (ys.max() + padding - ly) + 1
-
-                regions.append((lx, dx, ly, dy))
-                found_array[ly:ly + dy, lx:lx + dx] = 1
-
-    return list(set(regions))
-
-#-------------------------------------------------------------------------------
-
-def get_neighbors(input_array, x, y):
-    """ Return pixels near x,y that also contain counts """
-    neighbors = []
-    for i in [-2, -1, 0, 1, 2]:
-        for j in [-2, -1, 0, 1, 2]:
-            if i != j:
-                if input_array[y + i, x + j]:
-                    neighbors.append((x + j, y + i))
-
-    return neighbors
-
-#-------------------------------------------------------------------------------
-
-def find_extent(input_array, initial_x, initial_y):
-    MORE_TO_CHECK = True
-    all_points = [(initial_x, initial_y)]
-
-    while MORE_TO_CHECK:
-        xs = [item[0] for item in all_points]
-        ys = [item[1] for item in all_points]
-
-        starting_size = len(all_points)
-        for x, y in zip(xs, ys):
-            new_points = get_neighbors(input_array, x, y)
-            for point in new_points:
-                if not point in all_points:
-                    all_points.append(point)
-
-        ending_size = len(all_points)
-        if starting_size == ending_size:
-            MORE_TO_CHECK = False
-
-    return all_points
 
 #-------------------------------------------------------------------------------
 
