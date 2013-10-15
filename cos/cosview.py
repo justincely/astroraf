@@ -7,7 +7,7 @@ Version: 1.0 ish
 '''
 
 import pyfits
-import pylab
+import matplotlib.pyplot as plt
 import sys
 import numpy
 import glob
@@ -18,7 +18,7 @@ from astroraf.math.utils import gauss_kern, blur_image
 from astroraf.plotting import init_plots
 
 from matplotlib.patches import Rectangle
-from Tkinter import Tk, IntVar, StringVar, Frame, Button, Menu, Label, Radiobutton, OptionMenu, W, N, S, E, Checkbutton, Entry, END
+from Tkinter import Tk, IntVar, StringVar, Frame, Button, Menu, Label, Radiobutton, OptionMenu, W, N, S, E, Checkbutton, Entry, END, Toplevel
 import tkFileDialog, Tkconstants
 import matplotlib
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
@@ -462,8 +462,8 @@ class App:
         
         #-------Plots-------#
         init_plots()
-        pylab.ioff()
-        self.fig=pylab.figure(1, figsize=(20, 8.5))
+        plt.ioff()
+        self.fig=plt.figure(1, figsize=(20, 8.5))
         self.cax=self.fig.add_axes([.92, .1, .01, .82])
         self.ax=self.fig.add_axes()
 
@@ -495,8 +495,8 @@ class App:
                     dq=line['DQ']
                     x=[lx,lx+dx,lx+dx,lx,lx]
                     y=[ly,ly,ly+dy,ly+dy,ly]
-                    pylab.plot(x,y,'-',lw=2,color=colors[int(dq)])
-                    pylab.annotate(str(dq),(lx,ly),color=colors[int(dq)])
+                    plt.plot(x,y,'-',lw=2,color=colors[int(dq)])
+                    plt.annotate(str(dq),(lx,ly),color=colors[int(dq)])
         if self.show_mydq.get():
             dq_to_show=int(self.dq_show.get())
             bpix=pyfits.open('new_bpix.fits')
@@ -509,14 +509,14 @@ class App:
                     dq=line['DQ']
                     x=[lx,lx+dx,lx+dx,lx,lx]
                     y=[ly,ly,ly+dy,ly+dy,ly]
-                    pylab.plot(x,y,'--',lw=2,color=colors[int(dq)])
-                    pylab.annotate(str(dq),(lx,ly+dy),color=colors[int(dq)])
+                    plt.plot(x,y,'--',lw=2,color=colors[int(dq)])
+                    plt.annotate(str(dq),(lx,ly+dy),color=colors[int(dq)])
         self.canvas.show()
 
     def clear_axis(self):
-        pylab.figure(1)
-        pylab.subplot(1,1,1)
-        pylab.cla()
+        plt.figure(1)
+        plt.subplot(1,1,1)
+        plt.cla()
         #self.toggle_dq.deselect()
         #self.toggle_mydq.deselect()
         #self.toggle_spec.deselect()
@@ -680,10 +680,10 @@ class App:
         matplotlib.rcParams['figure.subplot.right']=.85
         matplotlib.rcParams['figure.subplot.top']=.85
         matplotlib.rcParams['figure.subplot.bottom']=.15
-        self.fig2=pylab.figure(2,figsize=(4,6))
+        self.fig2=plt.figure(2,figsize=(4,6))
         self.ax2=self.fig2.add_axes()
 
-        pylab.figure(2)
+        plt.figure(2)
         self.canvas2 = FigureCanvasTkAgg(self.fig2,master=self.toolswindow)
         self.canvas2.show()
         self.canvas2.get_tk_widget().grid(row = 13, column = 0,rowspan=17,columnspan=17,sticky=N+W+E+S) 
@@ -692,11 +692,11 @@ class App:
 
     def draw_all(self):
         #self.clear_axis()
-        pylab.figure(1)
-        pylab.cla()
-        pylab.subplot(1,1,1)
-	pylab.xlabel('X (Dispersion)')
-        pylab.ylabel('Y (Cross Dispersion)')
+        plt.figure(1)
+        plt.cla()
+        plt.subplot(1,1,1)
+	plt.xlabel('X (Dispersion)')
+        plt.ylabel('Y (Cross Dispersion)')
         show_which = self.draw.get()
         seg=self.segment.get()        
 	if ( show_which == 'Data File' ):
@@ -716,9 +716,9 @@ class App:
                 extension = 2
 
             #data = pyfits.getdata(self.data_file,extension)
-            #C1=pylab.contourf(gainmap.clip(max=vmax),levels,cmap=pylab.get_cmap(self.cmap.get()))
-            C1 = pylab.imshow(ttag_image(data_file),interpolation='nearest',aspect='auto',cmap=pylab.get_cmap(self.cmap.get()))#,vmin=,vmax=vmax)
-            pylab.colorbar(C1,cax=self.cax)
+            #C1=plt.contourf(gainmap.clip(max=vmax),levels,cmap=plt.get_cmap(self.cmap.get()))
+            C1 = plt.imshow(ttag_image(data_file),interpolation='nearest',aspect='auto',cmap=plt.get_cmap(self.cmap.get()))#,vmin=,vmax=vmax)
+            plt.colorbar(C1,cax=self.cax)
 
         if show_which=='Modal Gain':
             if self.Againmap==None: self.Againmap=pyfits.getdata(os.path.join( data_dir, '12676-all-A-2.fits' ),2)
@@ -742,9 +742,9 @@ class App:
             #if self.degrade_array.get():
             #    gainmap=self.degrade()
             levels=range(1,vmax+1)
-            C1=pylab.contourf(gainmap.clip(max=vmax),levels,cmap=pylab.get_cmap(self.cmap.get()))
-            #C1=pylab.imshow(gainmap.astype('int32'),aspect='auto',cmap=pylab.get_cmap(self.cmap.get()),vmin=vmin,vmax=vmax)
-            pylab.colorbar(C1,cax=self.cax)
+            C1=plt.contourf(gainmap.clip(max=vmax),levels,cmap=plt.get_cmap(self.cmap.get()))
+            #C1=plt.imshow(gainmap.astype('int32'),aspect='auto',cmap=plt.get_cmap(self.cmap.get()),vmin=vmin,vmax=vmax)
+            plt.colorbar(C1,cax=self.cax)
             if seg=='A':
                 self.Againmap=gainmap
             elif seg=='B':
@@ -766,9 +766,9 @@ class App:
                 exp=self.Aexp
             elif seg=='B':
                 exp=self.Bexp
-            C1=pylab.imshow(exp,aspect='auto',vmin=vmin,vmax=vmax,cmap=pylab.get_cmap(self.cmap.get()))
-            #C1=pylab.contourf(Aexp,levels)
-            pylab.colorbar(C1,cax=self.cax)
+            C1=plt.imshow(exp,aspect='auto',vmin=vmin,vmax=vmax,cmap=plt.get_cmap(self.cmap.get()))
+            #C1=plt.contourf(Aexp,levels)
+            plt.colorbar(C1,cax=self.cax)
         if show_which=='Summed Dark':
             if self.Adark==None: self.Adark=pyfits.getdata('all_pha_0.fits',1)
             if self.Bdark==None: self.Bdark=pyfits.getdata('all_pha_0.fits',2)
@@ -787,9 +787,9 @@ class App:
             if seg=='B':
                 dark=self.Bdark
 	    #dark = blur_image(dark,6,10)
-            C1=pylab.imshow(dark,aspect='auto',vmin=vmin,vmax=vmax,cmap=pylab.get_cmap(self.cmap.get()))
-            #C1=pylab.contourf(Aexp,levels)
-            pylab.colorbar(C1,cax=self.cax)
+            C1=plt.imshow(dark,aspect='auto',vmin=vmin,vmax=vmax,cmap=plt.get_cmap(self.cmap.get()))
+            #C1=plt.contourf(Aexp,levels)
+            plt.colorbar(C1,cax=self.cax)
         if self.extract.get()!='None':
             text=self.extract.get()
             offset=int(self.extract_offset.get())
@@ -805,19 +805,19 @@ class App:
             B_BKG2=XTRACTAB[index]['B_BKG2']+offset
             BHEIGHT=XTRACTAB[index]['BHEIGHT']
             
-            pylab.axhspan(B_SPEC-(HEIGHT-1)/2,B_SPEC+(HEIGHT-1)/2,facecolor='0.5',alpha=0.4)
-            pylab.axhspan(B_BKG1-(BHEIGHT-1)/2,B_BKG1+(BHEIGHT-1)/2,facecolor='0.2',alpha=0.4)
-            pylab.axhspan(B_BKG2-(BHEIGHT-1)/2,B_BKG2+(BHEIGHT-1)/2,facecolor='0.2',alpha=0.4)
+            plt.axhspan(B_SPEC-(HEIGHT-1)/2,B_SPEC+(HEIGHT-1)/2,facecolor='0.5',alpha=0.4)
+            plt.axhspan(B_BKG1-(BHEIGHT-1)/2,B_BKG1+(BHEIGHT-1)/2,facecolor='0.2',alpha=0.4)
+            plt.axhspan(B_BKG2-(BHEIGHT-1)/2,B_BKG2+(BHEIGHT-1)/2,facecolor='0.2',alpha=0.4)
 
         if self.show_spectrum.get():
             sample=pyfits.open('lbp102neq_corrtag_a.fits')
             im=ttag_image(sample[1].data)
-            #pylab.imshow(im,cmap=pylab.get_cmap('gist_yarg'),aspect='auto',interpolation='nearest',alpha=.7)
+            #plt.imshow(im,cmap=plt.get_cmap('gist_yarg'),aspect='auto',interpolation='nearest',alpha=.7)
 
         if self.xmin.get()!='ALL' and self.xmax.get()!='ALL':
-            pylab.xlim(int(self.xmin.get()),int(self.xmax.get()))
+            plt.xlim(int(self.xmin.get()),int(self.xmax.get()))
         if self.ymin.get()!='ALL' and self.ymax.get()!='ALL':
-            pylab.ylim(int(self.ymin.get()),int(self.ymax.get()))
+            plt.ylim(int(self.ymin.get()),int(self.ymax.get()))
         self.canvas.show()
 
     def exit(self):
@@ -825,8 +825,8 @@ class App:
         sys.exit(1)
 
     def extract_dqs(self):
-        pylab.figure(1)
-        pylab.subplot(1,1,1)
+        plt.figure(1)
+        plt.subplot(1,1,1)
         xlim_a=(1200,15099)
         ylim_a=(335,699)
         xlim_b=(950,15049)
@@ -865,7 +865,7 @@ class App:
                     subarray=dq_array[ly:ly+dy,lx:lx+dx]
                     index=numpy.where(subarray!=dq)
                     dq_array[ly:ly+dy,lx:lx+dx][index]+=dq
-        #pylab.contourf(dq_array,aspect='auto',levels=[0,2,4,8,16,32,64,128,256])
+        #plt.contourf(dq_array,aspect='auto',levels=[0,2,4,8,16,32,64,128,256])
         sdqflags=int(self.SDQFLAG.get())
         height=int(self.height.get())
         width=int(self.width.get())
@@ -873,7 +873,7 @@ class App:
         index=numpy.where(sdqflags&extracted)
         xs=[xlim[0],xlim[1],xlim[1],xlim[0],xlim[0]]
         ys=[height-width/2,height-width/2,height+width/2,height+width/2,height-width/2]
-        pylab.plot(xs,ys,'b--',lw=3)
+        plt.plot(xs,ys,'b--',lw=3)
         total=extracted.shape[0]*extracted.shape[1]
         self.affected_columns.set(100*len(set(index[1]))/float(xlim[1]-xlim[0]))
         self.affected_pixels.set(100*len(index[0])/float(total))
@@ -881,8 +881,8 @@ class App:
         self.histogram()
 
     def find_best(self):
-        pylab.figure(1)
-        pylab.subplot(1,1,1)
+        plt.figure(1)
+        plt.subplot(1,1,1)
         number_affected=[]
         index_affected=[]
         hs=[]
@@ -945,7 +945,7 @@ class App:
         height=hs[closest_index]
         xs=[xlim[0],xlim[1],xlim[1],xlim[0],xlim[0]]
         ys=[height-width/2,height-width/2,height+width/2,height+width/2,height-width/2]
-        pylab.plot(xs,ys,'-.',lw=6)
+        plt.plot(xs,ys,'-.',lw=6)
         extracted=dq_array[height-width/2:height+width/2,xlim[0]:xlim[1]]
         index=numpy.where(sdqflags&extracted)
         self.height.set(height)
@@ -1046,7 +1046,7 @@ class App:
                         x_cont.append(x)
             '''
 	    
-            pylab.scatter(xs,ys)
+            plt.scatter(xs,ys)
             self.canvas.show()
 
 	    data_array = numpy.zeros((1024,16384))
@@ -1063,7 +1063,7 @@ class App:
                     x=[lx,lx+dx,lx+dx,lx,lx]
                     y=[ly,ly,ly+dy,ly+dy,ly]
 		    print lx,ly,dx,dy
-                    pylab.plot(x,y,'-',lw=4,color='r',linestyle='-')
+                    plt.plot(x,y,'-',lw=4,color='r',linestyle='-')
 	    print 'Found all regions'
 	    self.canvas.show()
 
@@ -1109,27 +1109,27 @@ class App:
         if width==-99: width=int(self.width.get())
         gain_1d=(gainmap[height-(width-1)/2:height+(width-1)/2,xlim[0]:xlim[1]].flatten())
         #index=numpy.where(gain_1d>0)
-        pylab.figure(2)
-        pylab.clf()
+        plt.figure(2)
+        plt.clf()
         if caption:
             ax2=self.fig2.add_axes((.15,.37,.8,.5))
         else:
             ax2=self.fig2.add_axes((.15,.15,.8,.7))
-        pylab.cla()
-        pylab.suptitle('Modal Gain')
-        pylab.title('Segment= %s, Y=%s, dy=%s, years=%s, xshift=%s' %(self.segment2.get(),self.height.get(),self.width.get(),self.degrade_years.get(),self.degrade_xshift.get()),fontsize=12)
+        plt.cla()
+        plt.suptitle('Modal Gain')
+        plt.title('Segment= %s, Y=%s, dy=%s, years=%s, xshift=%s' %(self.segment2.get(),self.height.get(),self.width.get(),self.degrade_years.get(),self.degrade_xshift.get()),fontsize=12)
         #ax2.hist(gain_1d[index]*100,normed=True,bins=range(20),align='mid',color='r',alpha=.3)
         ax2.hist(gain_1d,normed=True,bins=range(20),align='mid',color='b')
         N_lte_3=len(numpy.where(gain_1d<=3)[0])
         N_tot=len(gain_1d)
-        ys=pylab.ylim()
-        pylab.text(1,ys[1]*.9,'Pixels below gain=3:\n%d/%d' %(N_lte_3,N_tot),fontsize=12)
+        ys=plt.ylim()
+        plt.text(1,ys[1]*.9,'Pixels below gain=3:\n%d/%d' %(N_lte_3,N_tot),fontsize=12)
         try:
             ax2.locator_params(nbins=20,tight=True,axis='x')
         except:
             pass
-        pylab.xlabel('Gain')
-        pylab.ylabel('Normalized Counts')
+        plt.xlabel('Gain')
+        plt.ylabel('Normalized Counts')
         t='''Modal Gain in extracted region of Segment %s.
 At Y=%s, dy=%s and SDQFLAGS=%s, %1.3f percent of
 pixels and %1.3f percent of colums will be flagged.''' %(self.segment2.get(),self.height.get(),self.width.get(),self.SDQFLAG.get(),float(self.affected_pixels.get()),float(self.affected_columns.get()))
@@ -1150,13 +1150,13 @@ pixels and %1.3f percent of colums will be flagged.''' %(self.segment2.get(),sel
         tkFileDialog.asksaveasfile()
 
     def save_fig(self):
-        pylab.figure(2)
+        plt.figure(2)
         out_file=tkFileDialog.asksaveasfilename()
-        pylab.savefig(out_file)
+        plt.savefig(out_file)
 
     def set_cmap(self,cmap):
-        if cmap=='autumn': pylab.autumn()
-        elif cmap=='spring': pylab.spring()
+        if cmap=='autumn': plt.autumn()
+        elif cmap=='spring': plt.spring()
         self.canvas.show()
 
     def show_limit_boxes(self):
@@ -1207,15 +1207,15 @@ pixels and %1.3f percent of colums will be flagged.''' %(self.segment2.get(),sel
             self.dq_show_box.grid_remove()
 
     def update_plot(self,event):
-        pylab.figure(1)
+        plt.figure(1)
         if self.xmin.get()!='ALL' and self.xmax.get()!='ALL':
-            pylab.xlim(int(self.xmin.get()),int(self.xmax.get()))
+            plt.xlim(int(self.xmin.get()),int(self.xmax.get()))
         else:
-            pylab.xlim(0,16384)
+            plt.xlim(0,16384)
         if self.ymin.get()!='ALL' and self.ymax.get()!='ALL':
-            pylab.ylim(int(self.ymin.get()),int(self.ymax.get()))
+            plt.ylim(int(self.ymin.get()),int(self.ymax.get()))
         else:
-            pylab.ylim(0,1024)
+            plt.ylim(0,1024)
         self.canvas.show()
 
 def main():
