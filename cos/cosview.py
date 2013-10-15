@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import sys
 import numpy
 import os
+from scipy.signal import medfilt
 
 from .ttag_funcs import ttag_image
 from astroraf.math.utils import gauss_kern, blur_image
@@ -36,6 +37,7 @@ class App:
         self.show_spectrum = IntVar()
         self.show_dark = IntVar()
         self.show_dq = IntVar()
+        self.show_ee = IntVar()
 
         self.xmin = StringVar()
         self.xmax = StringVar()
@@ -49,6 +51,7 @@ class App:
         self.extract_offset = IntVar()
         self.cmap = StringVar()
         self.dq_show = StringVar()
+        self.ee_show = StringVar()
         self.infile = StringVar()
         self.draw = StringVar()
         self.degrade_loc = StringVar()
@@ -203,33 +206,55 @@ class App:
             pady=3)
 
         # --------DQ flags to show-------#
-        self.dq_show_label = Label(
-            self.myContainer,
-            text='DQ to plot (bitwise)')
+        self.dq_show_label = Label(self.myContainer,
+                                   text='DQ to plot (bitwise)')
         self.dq_show_label.config(fg='blue')
+        self.dq_show_label.grid(row=0,
+                                column=3,
+                                sticky=W + E,
+                                padx=3,
+                                pady=3)
         self.dq_show_box = Entry(self.myContainer, textvariable=self.dq_show)
 
-        self.dq_show_box.grid(
-            row=4,
-            column=3,
-            sticky=W + E,
-            padx=3,
-            pady=3)
-        self.dq_show_label.grid(
-            row=0,
-            column=3,
-            sticky=W + E,
-            padx=3,
-            pady=3)
+        self.dq_show_box.grid(row=1,
+                              column=3,
+                              sticky=W + E,
+                              padx=3,
+                              pady=3)
         self.dq_show_box.delete(0, END)
         self.dq_show_box.insert(0, 184)
 
-        # ------------Master draw button-----------#
         self.draw_dq = Button(
             self.myContainer,
             text="Add DQ",
             command=self.add_dq)
-        self.draw_dq.grid(row=1, column=3, sticky=N)
+        self.draw_dq.grid(row=2, column=3, sticky=N)
+
+        # ------------Encircled energy draw button-----------#
+
+        self.ee_show_label = Label( self.myContainer, 
+                                    text='Encircled Energy Profile' )
+        self.ee_show_label.config( fg='blue' )
+        self.ee_show_label.grid(row=4,
+                                column=3,
+                                sticky=W + E,
+                                padx=3,
+                                pady=3)
+
+        self.ee_show_box = Entry( self.myContainer, textvariable=self.ee_show)
+        self.ee_show_box.grid( row=5,
+                               column=3,
+                               sticky=W + E,
+                               padx=3,
+                               pady=3)
+        self.ee_show_box.delete(0, END)
+        self.ee_show_box.insert(0, '1291' )
+
+        self.draw_ee = Button(
+            self.myContainer,
+            text="Add Profile",
+            command=self.add_ee)
+        self.draw_ee.grid(row=6, column=3, sticky=N)
 
         # ---------------------------------------------------------------------#
         # assign two enter boxes for the low color bin and the high color bin #
@@ -409,6 +434,7 @@ class App:
         self.vmin.set(0)
         self.vmax.set(0)
         self.dq_show.set('184')
+        self.dq_show.set('1291')
         self.segment.set('A')
         self.N_degraded.set(0)
         self.extract.set('None')
@@ -486,6 +512,41 @@ class App:
                 plt.plot(x, y, color=colors[int(dq)], **kwargs)
                 plt.annotate(str(dq), (lx, ly), color=colors[int(dq)])
 
+        self.canvas.show()
+
+
+    def add_ee( self ):
+        """ show encircled energy profile """
+        print 'Adding Encircled Energy profile'
+        fig = plt.figure( 1 )
+
+        segment = self.segment.get()
+
+        profile_dict = { 1291:'/user/duval/functional/extraction/G130M_CW1291_FUVB_fppos1_ee99_levels.fits',
+                         1327:'/user/duval/functional/extraction/G130M_CW1327_FUVB_fppos1_ee99_levels.fits'
+                         }
+        profile_cenwave = int( self.ee_show.get() )
+        hdu = pyfits.open( profile_dict[ profile_cenwave ] )
+        
+        print segment, profile_cenwave, ': ', profile_dict[ profile_cenwave ]
+
+        for i in range(len( hdu )):
+            if i:
+                hdu[i].data = medfilt( hdu[i].data, 21 )
+
+        if segment == 'A':
+            top = hdu[ 2 ].data
+            bottom = hdu[ 3 ].data
+            center = hdu[ 6 ].data
+        elif segment == 'B':
+            top = hdu[ 1 ].data
+            bottom = hdu[ 3 ].data
+            center = hdu[ 5 ].data
+
+        plt.plot( center )
+        plt.plot( center + top )
+        plt.plot( center - bottom )
+        
         self.canvas.show()
 
 
