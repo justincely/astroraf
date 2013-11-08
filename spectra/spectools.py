@@ -110,14 +110,15 @@ def obs_wavelength(rest_wave,redshift):
 
 #-------------------------------------------------------------------------------
 
-def fft_correlate(a,b,alims=(0,-1),blims=None,dispersion=None):
+def fft_correlate(a,b,alims=(0,-1),blims=None,dispersion=None, normalize=True, ):
     """ Perform FFT correlation between two spectra
-    """
 
-    try: scipy
-    except: import scipy
-    try: argmax
-    except: from numpy import argmax
+    Normalization of the cross-correlation function is computed by dividing
+    the cross-correlation by sqrt( sum(a**2) * sum(b**2) ).
+
+    """
+    import scipy
+    import numpy as np
 
     if blims == None: 
         blims=alims
@@ -128,9 +129,17 @@ def fft_correlate(a,b,alims=(0,-1),blims=None,dispersion=None):
     if len(b) > len(a):
         blims = (0, -1 * (1 + len(b) - len(a) ) )
 
+    if normalize:
+        a /= a.mean()
+        b /= b.mean()
+
+    # compute the cross-correlation
     c = (scipy.ifft(scipy.fft(a[alims[0]:alims[1]])*scipy.conj(scipy.fft(b[blims[0]:blims[1]])))).real
 
-    shift = argmax(c)
+    # Normalize the cross-correlation output
+    c /= np.sqrt( np.sum( a[alims[0]:alims[1]]**2 )  * np.sum( b[blims[0]:blims[1]]**2) )
+
+    shift = np.argmax(c)
 
     if shift > len(a)/2.0 :
         shift = shift - len(a)
