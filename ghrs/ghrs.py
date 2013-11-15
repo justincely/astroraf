@@ -7,6 +7,11 @@ import glob
 import pyfits
 import numpy as np
 
+from astroraf.spectra.spectools import cross_correlate
+
+from pyraf import iraf
+from iraf import stsdas, hst_calib, ctools
+
 class assemble:
     """
     Assemble GHRS fits files into a single MEF file
@@ -36,9 +41,11 @@ class assemble:
         self.background = self._get_data( self.background_file )
         self.dq = self._get_data( self.dq_file )
 
-        self._merge()
+        self._align()
 
-        self._monotonize_all()
+        #self._merge()
+
+        #self._monotonize_all()
 
 
     def _files_available(self, rootname):
@@ -59,7 +66,20 @@ class assemble:
         """Grab the data from the given file
         """
 
-        return pyfits.open( filename )[0].data.flatten() 
+        return np.array( [ array for array in pyfits.open( filename )[0].data ] )
+
+
+    def _align(self):
+        """ Cross-correlate each FP-SPLIT by the 1st
+
+        """
+
+        ref_wave = self.wavelength[0]
+        ref_flus = self.flux[0]
+
+        for wave, flux in zip( self.wavelength[1:], self.flux[1:] ):
+            shift = cross_correlate( ref_flux, flux, ref_wave, wave )
+            print shift
 
 
     def _monotonize_all(self):
@@ -136,15 +156,21 @@ class assemble:
         for kw in keyword_list:
             hdu_out[0].header[kw] = self.hdu[0].header[kw]
  
-        wavelength_col = pyfits.Column('wavelength', 'D', 'second', array=self.wavelength)
-        flux_col = pyfits.Column('flux', 'D', 'ergs/s', array=self.flux)
-        error_col = pyfits.Column('error', 'D', 'counts', array=self.error)
-        bkgnd_col = pyfits.Column('background', 'D', 'cnts', array=self.background)
-        dq_col = pyfits.Column('dq', 'D', 'cnts', array=self.dq)
+        array_size = len( self.wavelength[0] )
+
+        wavelength_col = pyfits.Column('wavelength', '{}D'.format( array_size ), 'second', array=self.wavelength )
+        flux_col = pyfits.Column('flux', '{}D'.format( array_size ), 'ergs/s', array=self.flux)
+        error_col = pyfits.Column('error', '{}D'.format( array_size ), 'counts', array=self.error)
+        bkgnd_col = pyfits.Column('background', '{}D'.format( array_size ), 'cnts', array=self.background)
+        dq_col = pyfits.Column('dq', '{}D'.format( array_size ), 'cnts', array=self.dq)
 
         tab = pyfits.new_table( [wavelength_col, flux_col, error_col,
-                                 bkgnd_col, dq_col] )
+                                 bkgnd_col, dq_col], nrows=len(self.wavelength) )
 
         hdu_out.append( tab )
 
         hdu_out.writeto( self.outname, clobber=clobber )  
+
+        hdu_out.splice( self.outname, self.outname.replace('x1d', 'x1dsum'), 
+                        sdqflags=16, wl_name='wavelength', flux_name='flux', sw_name='',
+                        wgt_name='', spacing='coars' )
