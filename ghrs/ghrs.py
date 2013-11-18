@@ -72,15 +72,16 @@ class assemble:
     def _align(self):
         """ Cross-correlate each FP-SPLIT by the 1st
 
+        Wavelengths are updated in place.
+
         """
 
         ref_wave = self.wavelength[0]
-        ref_flus = self.flux[0]
+        ref_flux = self.flux[0]
 
-        for wave, flux in zip( self.wavelength[1:], self.flux[1:] ):
+        for i, (wave, flux) in enumerate( zip( self.wavelength[1:], self.flux[1:] ) ):
             shift = cross_correlate( ref_flux, flux, ref_wave, wave )
-            print shift
-
+            self.wavelength[i] += shift
 
     def _monotonize_all(self):
         """ Make sure all arrays are monotonically increasing with 
@@ -168,9 +169,10 @@ class assemble:
                                  bkgnd_col, dq_col], nrows=len(self.wavelength) )
 
         hdu_out.append( tab )
+        #hdu_out[1].header['NELEM'] = array_size
 
         hdu_out.writeto( self.outname, clobber=clobber )  
 
-        hdu_out.splice( self.outname, self.outname.replace('x1d', 'x1dsum'), 
-                        sdqflags=16, wl_name='wavelength', flux_name='flux', sw_name='',
-                        wgt_name='', spacing='coars' )
+        iraf.splice( self.outname, self.outname.replace('x1d', 'x1dsum'), 
+                     sdqflags=16, wl_name='wavelength', flux_name='flux', sw_name='',
+                     wgt_name='', spacing='coarse' )
