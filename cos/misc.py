@@ -1,15 +1,6 @@
 from astropy.io import fits as pyfits
 
-try: 
-    import calcos
-    HAS_CALCOS = True
-except:
-    HAS_CALCOS = False
-
-if HAS_CALCOS:
-    __all__ = [ 'remake_asn', 'read_asn' ]
-else:
-    __all__ = [ 'read_asn' ]
+__all__ = [ 'remake_asn', 'read_asn' ]
 
 def remake_asn( asn_name, member_ext='_x1d.fits', product_ext='_x1dsum.fits',
                 allow_missing=False ):
