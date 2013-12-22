@@ -1,7 +1,7 @@
 
 __all__ = ['key_exists','hselect']
 
-import pyfits
+from astropy.io import fits as pyfits
 import glob
 
 def key_exists( header, keyword ):

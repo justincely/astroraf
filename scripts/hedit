@@ -25,7 +25,7 @@ Modify an extension header:
 """
 
 import argparse
-import pyfits
+from astropy.io import fits as pyfits
 
 
 def setval(fits, key, value, ext):

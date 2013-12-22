@@ -4,7 +4,7 @@ Functions for dealing with GHRS data
 """
 
 import glob
-import pyfits
+from astropy.io import fits as pyfits
 import numpy as np
 
 from astroraf.spectra.spectools import cross_correlate

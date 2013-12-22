@@ -4,7 +4,7 @@ Selection of functions dealing with time-tag data in FITS format
 """
 
 from astroraf.misc import progress_bar
-import pyfits
+from astropy.io import fits as pyfits
 import os
 import numpy as np
 

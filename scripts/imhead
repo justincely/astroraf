@@ -8,7 +8,7 @@ Matt Davis (mrdavis@stsci.edu)
 """
 
 import argparse
-import pyfits
+from astropy.io import fits as pyfits
 
 
 def print_header(fits, ext=0, key=None):

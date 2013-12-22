@@ -3,7 +3,7 @@
 Check COS data for uncorrected drift during a single exposure
 """
 
-import pyfits
+from astropy.io import fits as pyfits
 import numpy as np
 from scipy.ndimage.filters import convolve
 

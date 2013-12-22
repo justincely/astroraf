@@ -1,4 +1,5 @@
-import pyfits
+from astropy.io import fits as pyfits
+
 try: 
     import calcos
     HAS_CALCOS = True
