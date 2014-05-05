@@ -14,7 +14,7 @@ def remake_asn( asn_name, member_ext='_x1d.fits', product_ext='_x1dsum.fits',
 
     if not 'lref' in os.environ:
         os.environ['lref'] = '/grp/hst/cdbs/lref/'
-    asn_path, asn_name = os.path.split(asn_name)
+    asn_path, name = os.path.split(asn_name)
     members, product = read_asn(asn_name)
 
     all_members = [os.path.join(asn_path, item + member_ext) for item in members]
