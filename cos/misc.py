@@ -14,25 +14,24 @@ def remake_asn( asn_name, member_ext='_x1d.fits', product_ext='_x1dsum.fits',
 
     if not 'lref' in os.environ:
         os.environ['lref'] = '/grp/hst/cdbs/lref/'
+    asn_path = os.path.split(asn_name)
+    members, product = read_asn(asn_name)
 
-    members, product = read_asn( asn_name )
-
-    missing_members = [ item for item in members if not os.path.exists( item + member_ext ) ]
+    all_members = [os.path.join(asn_path, item + member_ext) for item in members]
+    missing_members = [ item for item in all_members if not os.path.exists(item) ]
 
     if len( missing_members ) and (not allow_missing):
         raise IOError( "The following members were not found\n %s"% 
                        (','.join( missing_members) ) )
 
     elif len( missing_members ) and allow_missing:
-        members = [ item for item in members if not (item in missing_members) ]
+        members = [ item for item in all_members if not (item in missing_members) ]
 
 
     if len( product ) > 2:
         raise IOError( 'Too many products' )
     else:
         product = product[0] + product_ext
-
-    members = [ item + member_ext for item in members ]
 
     fpavg.fpAvgSpec( members, product)
 
