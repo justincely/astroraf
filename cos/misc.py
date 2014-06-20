@@ -33,7 +33,7 @@ def remake_asn( asn_name, member_ext='_x1d.fits', product_ext='_x1dsum.fits',
     if len( product ) > 2:
         raise IOError( 'Too many products' )
     else:
-        product = product[0] + product_ext
+        product = os.path.join(asn_path, product[0] + product_ext)
 
     fpavg.fpAvgSpec( members, product)
 
