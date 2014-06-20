@@ -26,6 +26,8 @@ def remake_asn( asn_name, member_ext='_x1d.fits', product_ext='_x1dsum.fits',
 
     elif len( missing_members ) and allow_missing:
         members = [ item for item in all_members if not (item in missing_members) ]
+    else:
+        members = all_members
 
 
     if len( product ) > 2:
