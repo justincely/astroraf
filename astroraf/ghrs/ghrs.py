@@ -41,7 +41,7 @@ class assemble:
         self.background = self._get_data( self.background_file )
         self.dq = self._get_data( self.dq_file )
 
-        self._align()
+        #self._align()
 
         #self._merge()
 
@@ -69,7 +69,7 @@ class assemble:
         return np.array( [ array for array in pyfits.open( filename )[0].data ] )
 
 
-    def _align(self):
+    def _align(self, window=None):
         """ Cross-correlate each FP-SPLIT by the 1st
 
         Wavelengths are updated in place.
@@ -79,9 +79,13 @@ class assemble:
         ref_wave = self.wavelength[0]
         ref_flux = self.flux[0]
 
+	if not window:
+            window = (ref_wave.min(), ref_wave.max())
+
         for i, (wave, flux) in enumerate( zip( self.wavelength[1:], self.flux[1:] ) ):
-            shift = cross_correlate( ref_flux, flux, ref_wave, wave )
-            self.wavelength[i] += shift
+            shift = cross_correlate(ref_flux, flux, ref_wave, wave, window=window)
+            print shift
+            self.wavelength[i] -= shift
 
     def _monotonize_all(self):
         """ Make sure all arrays are monotonically increasing with 
@@ -105,7 +109,7 @@ class assemble:
 
         """
 
-        all_wavelengths = list( set( self.wavelength ) )
+        all_wavelengths = list(set(self.wavelength.ravel()))
         
         new_wavelength = []
         new_flux = []
@@ -126,8 +130,9 @@ class assemble:
         self.wavelength = np.array( new_wavelength )
         self.flux = np.array( new_flux )
         self.error = np.array( new_error )
-        self.backgorund = np.array( new_background )
-        self.dq = np.array( new_dq )
+        self.background = np.array( new_background )
+        self.dq = np.zeros(self.flux.shape)
+        #self.dq = np.array( new_dq )
 
 
     def _bool_or(self, bool_values):
@@ -157,22 +162,31 @@ class assemble:
         for kw in keyword_list:
             hdu_out[0].header[kw] = self.hdu[0].header[kw]
  
-        array_size = len( self.wavelength[0] )
+        array_size = len(self.wavelength[0])
 
-        wavelength_col = pyfits.Column('wavelength', '{}D'.format( array_size ), 'second', array=self.wavelength )
-        flux_col = pyfits.Column('flux', '{}D'.format( array_size ), 'ergs/s', array=self.flux)
-        error_col = pyfits.Column('error', '{}D'.format( array_size ), 'counts', array=self.error)
-        bkgnd_col = pyfits.Column('background', '{}D'.format( array_size ), 'cnts', array=self.background)
-        dq_col = pyfits.Column('dq', '{}D'.format( array_size ), 'cnts', array=self.dq)
+        dims = '{}D'.format(array_size)
+        wavelength_col = pyfits.Column('wavelength', dims, 'second', array=self.wavelength)
+        flux_col = pyfits.Column('flux', dims, 'ergs/s', array=self.flux)
+        error_col = pyfits.Column('error', dims, 'counts', array=self.error)
+        bkgnd_col = pyfits.Column('background', dims, 'cnts', array=self.background)
+        dq_col = pyfits.Column('dq', dims, 'cnts', array=self.dq)
 
-        tab = pyfits.new_table( [wavelength_col, flux_col, error_col,
-                                 bkgnd_col, dq_col], nrows=len(self.wavelength) )
+        tab = pyfits.new_table([wavelength_col, 
+                               flux_col,
+                               error_col,
+                               bkgnd_col, 
+                               dq_col], nrows=len(self.wavelength))
 
-        hdu_out.append( tab )
+        hdu_out.append(tab)
         #hdu_out[1].header['NELEM'] = array_size
 
-        hdu_out.writeto( self.outname, clobber=clobber )  
+        hdu_out.writeto(self.outname, clobber=clobber)  
 
-        iraf.splice( self.outname, self.outname.replace('x1d', 'x1dsum'), 
-                     sdqflags=16, wl_name='wavelength', flux_name='flux', sw_name='',
-                     wgt_name='', spacing='coarse' )
+        iraf.splice(self.outname, 
+                    self.outname.replace('x1d', 'x1dsum'), 
+                    sdqflags=16, 
+                    wl_name='wavelength', 
+                    flux_name='flux', 
+                    sw_name='',
+                    wgt_name='', 
+                    spacing='coarse')

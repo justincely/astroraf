@@ -4,7 +4,7 @@ import glob
 
 setup(
     name = 'astroraf',
-    packages = [ 'headers' ],
+    packages = ['astroraf'] + glob.glob('astroraf/*/'),
     url = 'https://github.com/justincely/astroraf',
     version = '0.0.1', 
     description = 'Package of Pyraf/IRAF replacement tasks',
@@ -18,7 +18,6 @@ setup(
                    'Topic :: Scientific/Engineering :: Physics',
                    'Topic :: Software Development :: Libraries :: Python Modules'],
     requires = ['numpy','pyfits'],
-    scripts =  ['scripts/hselect', 'scripts/hedit', 'scripts/imhead', 'scripts/show_lines',
-               'scripts/imstat', 'scripts/cosview', 'scripts/lightcurve','scripts/ghrs']
+    scripts =  glob.glob('scripts/*')
     )
 
